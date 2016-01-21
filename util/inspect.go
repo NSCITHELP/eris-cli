@@ -114,8 +114,13 @@ func printLine(container *docker.Container, existing bool) ([]string, error) {
 	} else {
 		running = "No"
 	}
+<<<<<<< 3d800c1d5eef9a7320e55d391d8c4f6db0e8cfc1:util/inspect.go
 
 	details := ContainerDetails(n)
+=======
+	//XXX machine?
+	Names := ContainerDisassemble(n)
+>>>>>>> remotes; try 1:util/container_stats.go
 
 	parts := []string{details.ShortName, "", running, details.FullName, FormulatePortsOutput(container)}
 	if err := CheckParts(parts); err != nil {
@@ -224,5 +229,4 @@ func CheckParts(parts []string) error {
 	if len(parts) != 5 {
 		return fmt.Errorf("part length !=5")
 	}
-	return nil
 }

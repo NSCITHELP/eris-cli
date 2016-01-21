@@ -14,8 +14,16 @@ import (
 
 	ver "github.com/eris-ltd/eris-cli/version"
 
+<<<<<<< 3d800c1d5eef9a7320e55d391d8c4f6db0e8cfc1
 	log "github.com/Sirupsen/logrus"
 	docker "github.com/fsouza/go-dockerclient"
+=======
+	log "github.com/eris-ltd/eris-cli/Godeps/_workspace/src/github.com/Sirupsen/logrus"
+	//	"github.com/docker/machine/libmachine"
+	// "github.com/docker/machine/libmachine/persist"
+
+	"github.com/eris-ltd/eris-cli/Godeps/_workspace/src/github.com/fsouza/go-dockerclient"
+>>>>>>> remotes; try 1
 
 	. "github.com/eris-ltd/common/go/common"
 )
@@ -27,6 +35,54 @@ func DockerConnect(verbose bool, machName string) { // TODO: return an error...?
 	var err error
 	var dockerHost string
 	var dockerCertPath string
+<<<<<<< 3d800c1d5eef9a7320e55d391d8c4f6db0e8cfc1
+=======
+	if runtime.GOOS == "linux" {
+		/*home := os.Getenv("HOME")
+		fs := path.Join(home, ".docker/machine")
+
+		f := persist.NewFilestore(fs, "", "")
+
+		//		list, erro := libmachine.API.List(f)
+		ls, erro := f.List()
+		if erro != nil {
+			fmt.Printf("ERORRRR: %v\n", erro)
+			os.Exit(1)
+		}
+		fmt.Printf("LIST: %v\n", ls)*/
+
+		// this means we aren't gonna use docker-machine (kind of)
+		if (machName == "eris" || machName == "default") && (os.Getenv("DOCKER_HOST") == "" && os.Getenv("DOCKER_CERT_PATH") == "") {
+			//if os.Getenv("DOCKER_HOST") == "" && os.Getenv("DOCKER_CERT_PATH") == "" {
+			endpoint := "unix:///var/run/docker.sock"
+
+			log.WithField("=>", endpoint).Debug("Checking Linux Docker socket")
+			u, _ := url.Parse(endpoint)
+			_, err := net.Dial(u.Scheme, u.Path)
+			if err != nil {
+				IfExit(fmt.Errorf("%v\n", mustInstallError()))
+			}
+			log.WithField("=>", endpoint).Debug("Connecting to Docker")
+			DockerClient, err = docker.NewClient(endpoint)
+			if err != nil {
+				IfExit(fmt.Errorf("%v\n", mustInstallError()))
+			}
+		} else {
+			log.WithFields(log.Fields{
+				"host":      os.Getenv("DOCKER_HOST"),
+				"cert path": os.Getenv("DOCKER_CERT_PATH"),
+			}).Debug("Getting connection details from environment")
+			log.WithField("machine", machName).Debug("Getting connection details from Docker Machine")
+			dockerHost, dockerCertPath, err = getMachineDeets(machName)
+			if err != nil {
+				IfExit(fmt.Errorf("Error getting Docker Machine details for connection via TLS.\nERROR =>\t\t\t%v\n\nEither re-run the command without a machine or correct your machine name.\n", err))
+			}
+
+			log.WithFields(log.Fields{
+				"host":      dockerHost,
+				"cert path": dockerCertPath,
+			}).Debug()
+>>>>>>> remotes; try 1
 
 	// This means we aren't gonna use docker-machine (kind of).
 	if (machName == "eris" || machName == "default") && (os.Getenv("DOCKER_HOST") == "" && os.Getenv("DOCKER_CERT_PATH") == "") {

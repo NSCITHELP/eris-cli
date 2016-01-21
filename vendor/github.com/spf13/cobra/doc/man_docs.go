@@ -24,8 +24,13 @@ import (
 	"time"
 
 	mangen "github.com/cpuguy83/go-md2man/md2man"
+<<<<<<< 3d800c1d5eef9a7320e55d391d8c4f6db0e8cfc1:vendor/github.com/spf13/cobra/doc/man_docs.go
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+=======
+	"github.com/eris-ltd/eris-cli/Godeps/_workspace/src/github.com/spf13/cobra"
+	"github.com/eris-ltd/eris-cli/Godeps/_workspace/src/github.com/spf13/pflag"
+>>>>>>> remotes; try 1:Godeps/_workspace/src/github.com/spf13/cobra/doc/man_docs.go
 )
 
 // GenManTree will generate a man page for this command and all decendants
