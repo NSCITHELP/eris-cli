@@ -77,9 +77,6 @@ func ListAll() {
 			return
 		}
 	}
-	/*if err := util.ListMachines(); err != nil {
-		return
-	}*/
 	if err := list.ListDatas(do); err != nil {
 		return
 >>>>>>> remotes; try 1

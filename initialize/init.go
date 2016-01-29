@@ -158,8 +158,12 @@ on local host machines. If you already have the images, they'll be updated.
 			return fmt.Errorf("Error reading from stdin: %v\n", err)
 		}
 		if input == "Y" || input == "y" || input == "YES" || input == "Yes" || input == "yes" {
+<<<<<<< 1503a7f6463826b7b85517fa70716fa78d2375a1
 			if err := pullDefaultImages(images); err != nil {
 >>>>>>> remotes; try 1
+=======
+			if err := pullDefaultImages(); err != nil {
+>>>>>>> remotes 2
 				return err
 			}
 			log.Warn("Successfully pulled default images")
