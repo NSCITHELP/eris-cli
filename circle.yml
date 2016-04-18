@@ -6,8 +6,8 @@ machine:
     ECM_BRANCH: develop
     EPM_BRANCH: develop
     MINDY_BRANCH: master
-    DOCKER_VERSION: 1.9.1
-    DOCKER_MACHINE_VERSION: 0.6.0
+    DOCKER_VERSION: 1.10.3
+    DOCKER_MACHINE_VERSION: 0.7.0
   post:
     - git config --global user.email "billings@erisindustries.com"
     - git config --global user.name "Billings the Bot"
@@ -28,7 +28,8 @@ dependencies:
 test:
   override:
     - "cd ${GOPATH%%:*}/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/cmd/eris && go install"
-    - "tests/test.sh | tee $CIRCLE_ARTIFACTS/output.log ; test ${PIPESTATUS[0]} -eq 0"
+    - case $CIRCLE_NODE_INDEX in 0) SKIP_STACK=true tests/test.sh;; 1) SKIP_PACKAGES=true tests/test.sh;; esac:
+        parallel: true
     - "tests/dm_cleanup.sh"
 
 deployment:
