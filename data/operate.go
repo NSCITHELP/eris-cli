@@ -49,8 +49,10 @@ func ImportData(do *definitions.Do) error {
 		if !exists {
 			return fmt.Errorf("There is no data container for service %q", do.Name, srv.Operations.SrvContainerName)
 		}
-		if err := checkErisContainerRoot(do, "import"); err != nil {
-			return err
+		if !do.Operations.SkipCheck {
+			if err := checkErisContainerRoot(do, "import"); err != nil {
+				return err
+			}
 		}
 
 		containerName := util.DataContainerName(do.Name)

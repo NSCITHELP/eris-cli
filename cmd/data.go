@@ -151,6 +151,9 @@ func addDataFlags() {
 
 	buildFlag(dataExec, do, "interactive", "data")
 
+	dataImport.Flags().BoolVarP(&do.Overwrite, "over-ride", "", false, "over-ride default path entry in container (/home/.eris/eris)")
+	dataExport.Flags().BoolVarP(&do.Overwrite, "over-ride", "", false, "over-ride default path entry in container (/home/.eris/eris)")
+
 }
 
 func ListData(cmd *cobra.Command, args []string) {
@@ -194,6 +197,9 @@ func ImportData(cmd *cobra.Command, args []string) {
 	do.Name = args[0]
 	do.Source = args[1]
 	do.Destination = args[2]
+	if do.Overwrite {
+		do.Operations.SkipCheck = true
+	}
 	IfExit(data.ImportData(do))
 }
 
@@ -203,6 +209,9 @@ func ExportData(cmd *cobra.Command, args []string) {
 	do.Name = args[0]
 	do.Source = args[1]
 	do.Destination = args[2]
+	if do.Overwrite {
+		do.Operations.SkipCheck = true
+	}
 	IfExit(data.ExportData(do))
 }
 
