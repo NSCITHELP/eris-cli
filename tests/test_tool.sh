@@ -80,8 +80,8 @@ setup() {
   docker pull busybox &>/dev/null # needed for clean package tests; also tester for docker connection
   if [ $? -ne 0 ] && [ -z $1 ]
   then
-    echo "Could not connect to Docker backend. Attempting to regenerate certificates."
-    docker-machine regenerate-certs --force $machine
+    echo "Could not connect to Docker backend. Attempting to (re-)provision."
+    docker-machine provision $machine
     connect
     setup "rebuild"
   elif [ $? -ne 0 ] && [ ! -z $1 ]
