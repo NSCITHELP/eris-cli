@@ -2,7 +2,6 @@ package data
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -11,6 +10,7 @@ import (
 	"regexp"
 
 	"github.com/eris-ltd/eris-cli/definitions"
+	"github.com/eris-ltd/eris-cli/errno"
 	"github.com/eris-ltd/eris-cli/loaders"
 	"github.com/eris-ltd/eris-cli/perform"
 	"github.com/eris-ltd/eris-cli/util"
@@ -47,7 +47,7 @@ func ImportData(do *definitions.Do) error {
 		exists := perform.ContainerExists(srv.Operations.SrvContainerName)
 
 		if !exists {
-			return fmt.Errorf("There is no data container for service %q", do.Name, srv.Operations.SrvContainerName)
+			return errno.ErrorCantFindData
 		}
 		if err := checkErisContainerRoot(do, "import"); err != nil {
 			return err
@@ -94,7 +94,7 @@ func ImportData(do *definitions.Do) error {
 		log.WithField("name", do.Name).Info("Data container does not exist, creating it")
 		ops := loaders.LoadDataDefinition(do.Name)
 		if err := perform.DockerCreateData(ops); err != nil {
-			return fmt.Errorf("Error creating data container %v.", err)
+			return errno.ErrorCreatingDataCont(err)
 		}
 
 		return ImportData(do)
@@ -110,7 +110,7 @@ func runData(name string, args []string) error {
 	doRun.Operations.Args = args
 	_, err := perform.DockerRunData(doRun.Operations, nil)
 	if err != nil {
-		return fmt.Errorf("Error running args: %v\n%v\n", args, err)
+		return errno.ErrorRunningArguments(args, err)
 	}
 	return nil
 }
@@ -126,7 +126,7 @@ func ExecData(do *definitions.Do) (buf *bytes.Buffer, err error) {
 			return nil, err
 		}
 	} else {
-		return nil, fmt.Errorf("The marmots cannot find that data container.\nPlease check the name of the data container with [eris data ls].")
+		return nil, errno.ErrorCantFindData
 	}
 	do.Result = "success"
 	return buf, nil
@@ -154,7 +154,7 @@ func ExportData(do *definitions.Do) error {
 		exists := perform.ContainerExists(srv.Operations.SrvContainerName)
 
 		if !exists {
-			return fmt.Errorf("There is no data container for that service.")
+			return errno.ErrorCantFindData
 		}
 
 		reader, writer := io.Pipe()
@@ -193,14 +193,14 @@ func ExportData(do *definitions.Do) error {
 		// the temp contents there
 		if _, err := os.Stat(do.Destination); os.IsNotExist(err) {
 			if e2 := os.MkdirAll(do.Destination, 0755); e2 != nil {
-				return fmt.Errorf("Error:\tThe marmots could neither find, nor had access to make the directory: (%s)\n", do.Destination)
+				return errno.ErrorMakingDirectory(do.Destination, err)
 			}
 		}
 		if err := MoveOutOfDirAndRmDir(exportPath, do.Destination); err != nil {
 			return err
 		}
 	} else {
-		return fmt.Errorf("I cannot find that data container. Please check the data container name you sent me.")
+		return errno.ErrorCantFindData
 	}
 
 	do.Result = "success"

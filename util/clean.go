@@ -6,10 +6,11 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/eris-ltd/common/go/common"
 	def "github.com/eris-ltd/eris-cli/definitions"
+	"github.com/eris-ltd/eris-cli/errno"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/eris-ltd/common/go/common"
 	docker "github.com/fsouza/go-dockerclient"
 )
 
@@ -65,7 +66,7 @@ func cleanHandler(toClean map[string]bool) error {
 func RemoveAllErisContainers() error {
 	contns, err := DockerClient.ListContainers(docker.ListContainersOptions{All: true})
 	if err != nil {
-		return fmt.Errorf("Error listing containers: %v", DockerError(err))
+		return errno.ErrorListingContainers(DockerError(err))
 	}
 
 	for _, container := range contns {
@@ -75,7 +76,7 @@ func RemoveAllErisContainers() error {
 			strings.HasPrefix(strings.TrimLeft(container.Names[0], "/"), "eris_") {
 
 			if err := removeContainer(container.ID); err != nil {
-				return fmt.Errorf("Error removing container: %v", DockerError(err))
+				return errno.ErrorRemovingContainer(err)
 			}
 		}
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/eris-ltd/eris-cli/config"
 	"github.com/eris-ltd/eris-cli/definitions"
+	"github.com/eris-ltd/eris-cli/errno"
 
 	"github.com/spf13/viper"
 
@@ -21,7 +22,7 @@ func LoadPackage(path, chainName string) (*definitions.Package, error) {
 	var err error
 	f, err := os.Stat(path)
 	if err != nil {
-		return nil, err
+		return nil, &errno.InvalidLoadingError{definitions.TypePkgs, err, "os.Stat"}
 	}
 	if f.IsDir() {
 		name = filepath.Base(path)
@@ -48,12 +49,12 @@ func LoadPackage(path, chainName string) (*definitions.Package, error) {
 		// have occured in the interim they are caught.
 		pkg, err = marshalPackage(pkgConf)
 		if err != nil {
-			return nil, err
+			return nil, &errno.InvalidLoadingError{definitions.TypePkgs, err, "marshalPackage"}
 		}
 	}
 
 	if err := checkName(pkg, chainName); err != nil {
-		return nil, err
+		return nil, &errno.InvalidLoadingError{definitions.TypePkgs, err, "checkName"}
 	}
 
 	return pkg, nil
@@ -75,14 +76,12 @@ func DefaultPackage(name, chainName string) *definitions.Package {
 
 func marshalPackage(pkgConf *viper.Viper) (*definitions.Package, error) {
 	pkgDef := definitions.BlankPackageDefinition()
-	err := pkgConf.Unmarshal(pkgDef)
+	if err := pkgConf.Unmarshal(pkgDef); err != nil {
+		return nil, fmt.Errorf("%s\n%v", errno.ErrorInvalidPkgJSON, err)
+	}
 	pkg := pkgDef.Package
 	if pkgDef.Name != "" {
 		pkg.Name = pkgDef.Name
-	}
-
-	if err != nil {
-		return nil, fmt.Errorf("%v\n\nSorry, the marmots could not figure that package.json out.\nPlease check your package.json is properly formatted.\n", err)
 	}
 
 	return pkg, nil

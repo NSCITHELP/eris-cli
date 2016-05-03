@@ -8,6 +8,7 @@ import (
 
 	"github.com/eris-ltd/eris-cli/config"
 	"github.com/eris-ltd/eris-cli/definitions"
+	"github.com/eris-ltd/eris-cli/errno"
 	"github.com/eris-ltd/eris-cli/initialize"
 	"github.com/eris-ltd/eris-cli/util"
 	"github.com/eris-ltd/eris-cli/version"
@@ -59,7 +60,7 @@ Complete documentation is available at https://docs.erisindustries.com
 		}
 
 
-		util.DockerConnect(do.Verbose, do.MachineName)
+		IfExit(util.DockerConnect(do.Verbose, do.MachineName))
 		ipfs.IpfsHost = config.GlobalConfig.Config.IpfsHost
 
 		if os.Getenv("TEST_ON_WINDOWS") == "true" || os.Getenv("TEST_ON_MACOSX") == "true" {
@@ -83,11 +84,10 @@ Complete documentation is available at https://docs.erisindustries.com
 		// Compare Docker client API versions.
 		dockerVersion, err := util.DockerClientVersion()
 		if err != nil {
-			IfExit(fmt.Errorf("There was an error connecting to your Docker daemon.\nCome back after you have resolved the issue and the marmots will be happy to service your blockchain management needs: %v", util.DockerError(err)))
+			IfExit(errno.ErrorConnectDockerDaemon(util.DockerError(err)))
 		}
-		marmot := "Come back after you have upgraded and the marmots will be happy to service your blockchain management needs"
 		if !util.CompareVersions(dockerVersion, dVerMin) {
-			IfExit(fmt.Errorf("Eris requires docker version >= %v\nThe marmots have detected docker version: %v\n%s", dVerMin, dockerVersion, marmot))
+			IfExit(errno.ErrorBadWhaleVersions("docker", dVerMin, dockerVersion))
 		}
 		log.AddHook(CrashReportHook(dockerVersion))
 
@@ -96,7 +96,7 @@ Complete documentation is available at https://docs.erisindustries.com
 		if err != nil {
 			log.Info("The marmots could not find docker-machine installed. While it is not required to use the Eris platform, we strongly recommend it be installed for maximum blockchain awesomeness.")
 		} else if !util.CompareVersions(dmVersion, dmVerMin) {
-			IfExit(fmt.Errorf("Eris requires docker-machine version >= %v\nThe marmots have detected version: %v\n%s", dmVerMin, dmVersion, marmot))
+			IfExit(errno.ErrorBadWhaleVersions("docker-machine", dmVerMin, dmVersion))
 		}
 	},
 
@@ -213,12 +213,12 @@ func ArgCheck(num int, comp string, cmd *cobra.Command, args []string) error {
 	case "eq":
 		if len(args) != num {
 			cmd.Help()
-			return fmt.Errorf("\n**Note** you sent our marmots the wrong number of arguments.\nPlease send the marmots %d arguments only.", num)
+			return errno.ErrorBadCommandLength("arguments", fmt.Sprintf("%d arguments only.", num))
 		}
 	case "ge":
 		if len(args) < num {
 			cmd.Help()
-			return fmt.Errorf("\n**Note** you sent our marmots the wrong number of arguments.\nPlease send the marmots at least %d argument(s).", num)
+			return errno.ErrorBadCommandLength("arguments", fmt.Sprintf("at least %d argument(s).", num))
 		}
 	}
 	return nil
@@ -230,12 +230,12 @@ func FlagCheck(num int, comp string, cmd *cobra.Command, flags []string) error {
 	case "eq":
 		if len(flags) != num {
 			cmd.Help()
-			return fmt.Errorf("\n**Note** you sent our marmots the wrong number of flags.\nPlease send the marmots %d flags only.", num)
+			return errno.ErrorBadCommandLength("flags", fmt.Sprintf("%d flags only.", num))
 		}
 	case "ge":
 		if len(flags) < num {
 			cmd.Help()
-			return fmt.Errorf("\n**Note** you sent our marmots the wrong number of flags.\nPlease send the marmots at least %d flag(s).", num)
+			return errno.ErrorBadCommandLength("flags", fmt.Sprintf("at least %d flag(s).", num))
 		}
 	}
 	return nil

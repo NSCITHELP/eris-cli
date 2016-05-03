@@ -1,11 +1,11 @@
 package data
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/eris-ltd/eris-cli/definitions"
+	"github.com/eris-ltd/eris-cli/errno"
 	"github.com/eris-ltd/eris-cli/loaders"
 	"github.com/eris-ltd/eris-cli/perform"
 	"github.com/eris-ltd/eris-cli/util"
@@ -29,7 +29,7 @@ func RenameData(do *definitions.Do) error {
 			return err
 		}
 	} else {
-		return fmt.Errorf("I cannot find that data container. Please check the data container name you sent me.")
+		return errno.ErrorCantFindData
 	}
 	do.Result = "success"
 	return nil
@@ -47,7 +47,7 @@ func InspectData(do *definitions.Do) error {
 			return err
 		}
 	} else {
-		return fmt.Errorf("I cannot find that data container. Please check the data container name you sent me.")
+		return errno.ErrorCantFindData
 	}
 	do.Result = "success"
 	return nil
@@ -72,7 +72,7 @@ func RmData(do *definitions.Do) (err error) {
 			}
 
 		} else {
-			err = fmt.Errorf("I cannot find that data container for %s. Please check the data container name you sent me.", do.Name)
+			err = errno.ErrorCantFindData
 			log.Error(err)
 			return err
 		}

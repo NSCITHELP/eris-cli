@@ -2,7 +2,6 @@ package services
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -11,6 +10,7 @@ import (
 	"github.com/eris-ltd/eris-cli/config"
 	"github.com/eris-ltd/eris-cli/data"
 	"github.com/eris-ltd/eris-cli/definitions"
+	"github.com/eris-ltd/eris-cli/errno"
 	"github.com/eris-ltd/eris-cli/loaders"
 	"github.com/eris-ltd/eris-cli/perform"
 	"github.com/eris-ltd/eris-cli/util"
@@ -40,7 +40,7 @@ func ImportService(do *definitions.Do) error {
 
 	_, err = loaders.LoadServiceDefinition(do.Name, false)
 	if err != nil {
-		return fmt.Errorf("error loading service:\n%v", err)
+		return err // has nice error
 	}
 
 	do.Result = "success"
@@ -68,7 +68,7 @@ func NewService(do *definitions.Do) error {
 	}).Debug("Creating a new service definition file")
 	err = WriteServiceDefinitionFile(srv, filepath.Join(ServicesPath, do.Name+".toml"))
 	if err != nil {
-		return err
+		return &errno.ServiceError{"new", err, "WriteServiceDefinitionFile"}
 	}
 	do.Result = "success"
 	return nil
@@ -88,7 +88,7 @@ func RenameService(do *definitions.Do) error {
 	}).Info("Renaming service")
 
 	if do.Name == do.NewName {
-		return fmt.Errorf("Cannot rename to same name")
+		return errno.ErrorRenaming
 	}
 
 	newNameBase := strings.Replace(do.NewName, filepath.Ext(do.NewName), "", 1)
@@ -147,7 +147,7 @@ func RenameService(do *definitions.Do) error {
 
 		os.Remove(oldFile)
 	} else {
-		return fmt.Errorf("I cannot find that service. Please check the service name you sent me.")
+		return errno.ErrorCannotFindService
 	}
 	do.Result = "success"
 	return nil
@@ -201,8 +201,7 @@ func ExportService(do *definitions.Do) error {
 		log.WithField("hash", hash).Warn()
 
 	} else {
-		return fmt.Errorf(`I don't know that service. Please retry with a known service.
-To find known services use [eris services ls --known]`)
+		return errno.ErrorCannotFindService
 	}
 	return nil
 }
@@ -269,7 +268,7 @@ func CatService(do *definitions.Do) error {
 			return nil
 		}
 	}
-	return fmt.Errorf("Unknown service %s or invalid file extension", do.Name)
+	return errno.ErrorCannotFindService
 }
 
 func InspectServiceByService(srv *definitions.Service, ops *definitions.Operation, field string) error {

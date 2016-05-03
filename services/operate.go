@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/eris-ltd/eris-cli/definitions"
+	"github.com/eris-ltd/eris-cli/errno"
 	"github.com/eris-ltd/eris-cli/loaders"
 	"github.com/eris-ltd/eris-cli/perform"
 	"github.com/eris-ltd/eris-cli/util"
@@ -39,10 +40,10 @@ func StartService(do *definitions.Do) (err error) {
 			"links":        s.Service.Links,
 			"volumes from": s.Service.VolumesFrom,
 		}).Debug()
-
 		// Spacer.
 		log.Debug()
 	}
+
 	services, err = BuildChainGroup(do.ChainName, services)
 	if err != nil {
 		return err
@@ -180,7 +181,7 @@ func StartGroup(group []*definitions.ServiceDefinition) error {
 	for _, srv := range group {
 		log.WithField("=>", srv.Name).Debug("Performing container start")
 		if err := perform.DockerRunService(srv.Service, srv.Operations); err != nil {
-			return fmt.Errorf("Error starting service %s: %v", srv.Name, err)
+			return &errno.ServiceError{"start", fmt.Errorf("%s: %v", srv.Name, err), "perform.DockerRunService"}
 		}
 	}
 	return nil
@@ -209,6 +210,7 @@ func BuildChainGroup(chainName string, services []*definitions.ServiceDefinition
 	return append(servicesAndChains, services...), nil
 }
 
+//TODO show this function some love and error handling
 func ConnectChainToService(chainFlag, chainNameAndOpts string, srv *definitions.ServiceDefinition) (*definitions.ServiceDefinition, error) {
 	chainName, internalName, link, mount := util.ParseDependency(chainNameAndOpts)
 	if chainFlag != "" {
@@ -219,7 +221,7 @@ func ConnectChainToService(chainFlag, chainNameAndOpts string, srv *definitions.
 		var err error
 		chainName, err = util.GetHead()
 		if chainName == "" || err != nil {
-			return nil, fmt.Errorf("Marmot disapproval face.\nYou tried to start a service which has a `$chain` variable but didn't give us a chain.\nPlease rerun the command either after [eris chains checkout CHAINNAME] *or* with a --chain flag.\n")
+			return nil, fmt.Errorf("%s %v", errno.ErrorNoChainSpecified, err)
 		}
 	}
 	s, err := loaders.ChainsAsAService(chainName, false)

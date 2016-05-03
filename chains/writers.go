@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	def "github.com/eris-ltd/eris-cli/definitions"
+	"github.com/eris-ltd/eris-cli/errno"
 	srv "github.com/eris-ltd/eris-cli/services"
 
 	log "github.com/Sirupsen/logrus"
@@ -76,7 +77,7 @@ func MakeGenesisFile(do *def.Do) error {
 
 	log.WithField("=>", doThr.Name).Info("Making genesis.json file. Starting chain")
 	if er := NewChain(doThr); er != nil {
-		return fmt.Errorf("error starting chain %v\n", er)
+		return errno.ErrorStartingChain(er)
 	}
 
 	doThr.Operations.Args = []string{"mintgen", "known", do.Chain.Name, fmt.Sprintf("--pub=%s", do.Pubkey)}

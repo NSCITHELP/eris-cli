@@ -1,7 +1,6 @@
 package pkgs
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"path"
@@ -13,6 +12,7 @@ import (
 	"github.com/eris-ltd/eris-cli/config"
 	"github.com/eris-ltd/eris-cli/data"
 	"github.com/eris-ltd/eris-cli/definitions"
+	"github.com/eris-ltd/eris-cli/errno"
 	"github.com/eris-ltd/eris-cli/loaders"
 	"github.com/eris-ltd/eris-cli/perform"
 	"github.com/eris-ltd/eris-cli/services"
@@ -105,7 +105,7 @@ func BootServicesAndChain(do *definitions.Do, pkg *definitions.Package) error {
 				log.WithField("=>", head).Info("No chain flag or in package file. Booting chain from checked out chain")
 				err = bootChain(head, do)
 			} else { // if no chain is checked out and no --chain given, default to a throwaway
-				return fmt.Errorf("The package definition file needs a checked out chain to continue. Please check out the appropriate chain or rerun with a chain flag")
+				return errno.ErrorNeedChainCheckedOut
 			}
 		case "t", "tmp", "temp", "temporary", "throwaway", "thr", "throw":
 			log.Info("No chain was given, booting a throwaway chain")
@@ -260,7 +260,7 @@ func bootChain(name string, do *definitions.Do) error {
 		}
 		do.Chain.ChainType = "service" // setting this for tear down purposes
 	default:
-		return fmt.Errorf("The marmots could not find that chain name. Please review and rerun the command")
+		return errno.ErrorCantFindChain
 	}
 
 	do.Chain.Name = name // setting this for tear down purposes
@@ -443,7 +443,7 @@ func getDataContainerSorted(do *definitions.Do, inbound bool) error {
 			}
 		}
 	} else {
-		return fmt.Errorf("That path does not exist. Please rerun command with a proper path")
+		return errno.ErrorPathDoesNotExist(do.Path)
 	}
 
 	// import contracts path (if exists)

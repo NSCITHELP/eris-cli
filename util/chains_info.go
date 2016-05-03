@@ -1,9 +1,10 @@
 package util
 
 import (
-	"fmt"
 	"io/ioutil"
 	"strings"
+
+	"github.com/eris-ltd/eris-cli/errno"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/eris-ltd/common/go/common"
@@ -43,7 +44,7 @@ func GetHead() (string, error) {
 	head := fspl[0]
 
 	if head == "" {
-		return "", fmt.Errorf("There is no chain checked out")
+		return "", errno.ErrorNeedChainCheckedOut
 	}
 
 	return head, nil

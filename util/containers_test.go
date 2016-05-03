@@ -3,13 +3,14 @@ package util
 import (
 	"testing"
 
+	"github.com/eris-ltd/common/go/common"
 	def "github.com/eris-ltd/eris-cli/definitions"
 
 	docker "github.com/fsouza/go-dockerclient"
 )
 
 func init() {
-	DockerConnect(false, "eris")
+	common.IfExit(DockerConnect(false, "eris"))
 }
 
 func TestUniqueName(t *testing.T) {

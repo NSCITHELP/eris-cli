@@ -1,40 +1,37 @@
 package util
 
 import (
-	"errors"
 	"reflect"
-)
 
-var (
-	ErrMergeParameters = errors.New("parameters are not pointers to struct")
+	"github.com/eris-ltd/eris-cli/errno"
 )
 
 // Merge merges maps and slices of base and over and overwrites other base fields.
 // Base and over are pointers to structs. The result is stored in base.
-// Merge returns ErrMergeParameters if either base or over are not
+// Merge returns ErrorMergeParameters if either base or over are not
 // pointers to structs.
 func Merge(base, over interface{}) error {
 	if base == nil || over == nil {
-		return ErrMergeParameters
+		return errno.ErrorMergeParameters
 	}
 
 	// If not pointers, it won't be possible to store the result in base.
 	if reflect.ValueOf(base).Kind() != reflect.Ptr ||
 		reflect.ValueOf(over).Kind() != reflect.Ptr {
-		return ErrMergeParameters
+		return errno.ErrorMergeParameters
 	}
 
 	// Not structs.
 	if reflect.ValueOf(base).Elem().Kind() != reflect.Struct ||
 		reflect.ValueOf(over).Elem().Kind() != reflect.Struct {
-		return ErrMergeParameters
+		return errno.ErrorMergeParameters
 	}
 
 	// Structs, but varying number of fields.
 	baseFields := reflect.TypeOf(base).Elem().NumField()
 	overFields := reflect.TypeOf(over).Elem().NumField()
 	if baseFields != overFields {
-		return ErrMergeParameters
+		return errno.ErrorMergeParameters
 	}
 
 	for i := 0; i < baseFields; i++ {

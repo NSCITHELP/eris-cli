@@ -7,9 +7,10 @@ import (
 	"os"
 	"path/filepath"
 
-	dir "github.com/eris-ltd/common/go/common"
+	"github.com/eris-ltd/eris-cli/errno"
 
 	"github.com/BurntSushi/toml"
+	dir "github.com/eris-ltd/common/go/common"
 	"github.com/spf13/viper"
 	"github.com/tcnksm/go-gitconfig"
 )
@@ -65,7 +66,7 @@ func LoadViperConfig(configPath, configName, typ string) (*viper.Viper, error) {
 	conf.SetConfigName(configName)
 	err := conf.ReadInConfig()
 	if err != nil {
-		return nil, fmt.Errorf("Unable to load the %s's config for the %s in %s.\nCheck your known %ss with [eris %ss ls --known]\nThere may also be an error with the formatting of the .toml file:\n%v", typ, configName, configPath, typ, typ, err)
+		return nil, errno.ErrorLoadViperConfig(typ, err)
 	}
 
 	return conf, nil

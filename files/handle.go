@@ -12,6 +12,7 @@ import (
 	"github.com/eris-ltd/eris-cli/config"
 	"github.com/eris-ltd/eris-cli/data"
 	"github.com/eris-ltd/eris-cli/definitions"
+	"github.com/eris-ltd/eris-cli/errno"
 	"github.com/eris-ltd/eris-cli/services"
 	"github.com/eris-ltd/eris-cli/util"
 
@@ -217,7 +218,7 @@ func ManagePinned(do *definitions.Do) error {
 		return err
 	}
 	if do.Rm && do.Hash != "" {
-		return fmt.Errorf("Either remove a file by hash or all of them\n")
+		return errno.WarnAllOrNothing
 	}
 
 	if do.Rm {
@@ -384,7 +385,7 @@ func EnsureIPFSrunning() error {
 	doNow := definitions.NowDo()
 	doNow.Name = "ipfs"
 	if err := services.EnsureRunning(doNow); err != nil {
-		return fmt.Errorf("Failed to ensure IPFS is running: %v", err)
+		return errno.ErrorEnsureRunningIPFS(err)
 	}
 	log.Info("IPFS is running")
 	return nil
@@ -394,7 +395,7 @@ func checkGatewayFlag(do *definitions.Do) error {
 	if do.Gateway != "" {
 		_, err := url.Parse(do.Gateway)
 		if err != nil {
-			return fmt.Errorf("Invalid gateway URL provided %v\n", err)
+			return errno.BadGatewayURL(err)
 		}
 		log.WithField("gateway", do.Gateway).Debug("Posting to")
 	} else {

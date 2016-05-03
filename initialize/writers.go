@@ -10,14 +10,13 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/eris-ltd/eris-cli/errno"
 	"github.com/eris-ltd/eris-cli/util"
-
-	"github.com/docker/docker/pkg/jsonmessage"
-	"github.com/docker/docker/pkg/term"
-
 	ver "github.com/eris-ltd/eris-cli/version"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/docker/docker/pkg/jsonmessage"
+	"github.com/docker/docker/pkg/term"
 	"github.com/eris-ltd/common/go/common"
 	"github.com/eris-ltd/common/go/ipfs"
 	docker "github.com/fsouza/go-dockerclient"
@@ -36,8 +35,9 @@ func dropActionDefaults(dir, from string) error {
 	if err := drops(ver.ACTION_DEFINITIONS, "actions", dir, from); err != nil {
 		return err
 	}
-	if err := writeDefaultFile(common.ActionsPath, "do_not_use.toml", defAct); err != nil {
-		return fmt.Errorf("Cannot add default do_not_use: %s.\n", err)
+	donot := "do_not_use.toml"
+	if err := writeDefaultFile(common.ActionsPath, donot, defAct); err != nil {
+		return errno.ErrorWritingFile(donot, err)
 	}
 	return nil
 }
@@ -52,14 +52,18 @@ func dropChainDefaults(dir, from string) error {
 	// XXX something wonky with ResolveErisRoot()?
 	// TODO: refactor so it uses chainsMake .... somehow
 	chnDir := filepath.Join(dir, "default")
-	if err := writeDefaultFile(chnDir, "genesis.json", DefChainGen); err != nil {
-		return fmt.Errorf("Cannot add default genesis.json: %s.\n", err)
+	genJSON := "genesis.json"
+	genCSV := "genesis.csv"
+	priv := "priv_validator.json"
+
+	if err := writeDefaultFile(chnDir, genJSON, DefChainGen); err != nil {
+		return errno.ErrorWritingFile(genJSON, err)
 	}
-	if err := writeDefaultFile(chnDir, "priv_validator.json", DefChainKeys); err != nil {
-		return fmt.Errorf("Cannot add default priv_validator.json: %s.\n", err)
+	if err := writeDefaultFile(chnDir, genCSV, DefChainCSV); err != nil {
+		return errno.ErrorWritingFile(genCSV, err)
 	}
-	if err := writeDefaultFile(chnDir, "genesis.csv", DefChainCSV); err != nil {
-		return fmt.Errorf("Cannot add default genesis.csv: %s.\n", err)
+	if err := writeDefaultFile(chnDir, priv, DefChainKeys); err != nil {
+		return errno.ErrorWritingFile(priv, err)
 	}
 
 	//insert version into default chain service definition

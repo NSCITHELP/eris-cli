@@ -3,7 +3,6 @@ package perform
 import (
 	"archive/tar"
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -16,23 +15,20 @@ import (
 	"time"
 	"unicode"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/eris-ltd/eris-cli/config"
 	def "github.com/eris-ltd/eris-cli/definitions"
+	"github.com/eris-ltd/eris-cli/errno"
 	"github.com/eris-ltd/eris-cli/util"
 	ver "github.com/eris-ltd/eris-cli/version"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/pkg/term"
 	dirs "github.com/eris-ltd/common/go/common"
 	docker "github.com/fsouza/go-dockerclient"
 )
 
-var (
-	ErrContainerExists = errors.New("container exists")
-)
-
-// DockerCreateData creates a blank data container. It returns ErrContainerExists
+// DockerCreateData creates a blank data container. It returns errno.ErrorContainerExists
 // if such a container exists or other Docker errors.
 //
 //  ops.DataContainerName  - data container name to be created
@@ -44,7 +40,7 @@ func DockerCreateData(ops *def.Operation) error {
 
 	if exists := ContainerExists(ops.DataContainerName); exists {
 		log.Info("Data container exists. Not creating")
-		return ErrContainerExists
+		return errno.ErrorContainerExists
 	}
 
 	optsData, err := configureDataContainer(def.BlankService(), ops, nil)
@@ -91,7 +87,7 @@ func DockerRunData(ops *def.Operation, service *def.Service) (result []byte, err
 		log.WithField("=>", opts.Name).Info("Removing data container")
 		if err2 := removeContainer(opts.Name, true, false); err2 != nil {
 			if os.Getenv("CIRCLE_BRANCH") == "" {
-				err = fmt.Errorf("Tragic! Error removing data container after executing (%v): %v", err, err2)
+				err = errno.ErrorRmDataContainer(err, err2)
 			}
 		}
 		log.WithField("=>", opts.Name).Info("Container removed")
@@ -149,7 +145,7 @@ func DockerExecData(ops *def.Operation, service *def.Service) (buf *bytes.Buffer
 		log.WithField("=>", opts.Name).Info("Removing data container")
 		if err2 := removeContainer(opts.Name, true, false); err2 != nil {
 			if os.Getenv("CIRCLE_BRANCH") == "" {
-				err = fmt.Errorf("Tragic! Error removing data container after executing (%v): %v", err, err2)
+				err = errno.ErrorRemovingDataCont(err, err2)
 			}
 		}
 		log.WithField("=>", opts.Name).Info("Data container removed")
@@ -526,7 +522,7 @@ func DockerStop(srv *def.Service, ops *def.Operation, timeout uint) error {
 // DockerRename renames the container by removing and recreating it. The container
 // is also restarted if it was running before rename. The container ops.SrvContainerName
 // is renamed to a new name, constructed using a short given newName.
-// DockerRename returns Docker errors on exit or ErrContainerExists
+// DockerRename returns Docker errors on exit or errno.ErrorContainerExists
 // if the container with the new (long) name exists.
 //
 //  ops.SrvContainerName  - container name
@@ -550,7 +546,7 @@ func DockerRename(ops *def.Operation, newName string) error {
 	log.WithField("=>", longNewName).Debug("Checking new container exists")
 	_, err = util.DockerClient.InspectContainer(longNewName)
 	if err == nil {
-		return ErrContainerExists
+		return errno.ErrorContainerExists
 	}
 
 	// Mark if the container's running to restart it later.
@@ -704,7 +700,7 @@ func DockerBuild(imageName, dockerfile string) error {
 		return err
 	}
 	if !ok {
-		return fmt.Errorf("Image does not exist. Something went wrong. Exiting")
+		return errno.ErrorImageNotExist
 	}
 
 	return nil
@@ -785,7 +781,7 @@ func createContainer(opts docker.CreateContainerOptions) (*docker.Container, err
 					log.Debug("User assented to pull")
 				} else {
 					log.Debug("User refused to pull")
-					return nil, fmt.Errorf("Cannot start a container based on an image you will not let me pull")
+					return nil, errno.ErrorNotLetMePull
 				}
 			} else {
 				log.WithField("image", opts.Config.Image).Warn("The Docker image is not found locally")
@@ -895,9 +891,9 @@ func attachContainer(id string, terminal bool, attached chan struct{}) (docker.C
 func waitContainer(id string) error {
 	exitCode, err := util.DockerClient.WaitContainer(id)
 	if exitCode != 0 {
-		err1 := fmt.Errorf("Container %s exited with status %d", id, exitCode)
+		err1 := errno.ErrorContainerExit(id, exitCode)
 		if err != nil {
-			err = fmt.Errorf("%s. Error: %v", err1.Error(), err)
+			err = fmt.Errorf("%v\nerror: %v\n", err1, err)
 		} else {
 			err = err1
 		}

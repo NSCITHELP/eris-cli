@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	def "github.com/eris-ltd/eris-cli/definitions"
+	"github.com/eris-ltd/eris-cli/errno"
 
 	log "github.com/Sirupsen/logrus"
 	dir "github.com/eris-ltd/common/go/common"
@@ -72,7 +73,7 @@ func readActionDefinition(actionName []string, dropped map[string]string, varNum
 			"drop":   dropped,
 			"var#":   varNum,
 		}).Debug("Failed to load action definition file")
-		return nil, dropped, fmt.Errorf("The marmots could not find the action definition file.\nPlease check your actions with [eris actions ls]")
+		return nil, dropped, errno.ErrorCantFindAction
 	}
 
 	log.WithField("file", strings.Join(actionName, "_")).Debug("Preparing to read action definition file")
@@ -101,7 +102,7 @@ func readActionDefinition(actionName []string, dropped map[string]string, varNum
 func marshalActionDefinition(actionConf *viper.Viper, action *def.Action) error {
 	err := actionConf.Unmarshal(action)
 	if err != nil {
-		return fmt.Errorf("Tragic! The marmots could not read that action definition file:\n%v\n", err)
+		return &errno.InvalidLoadingError{def.TypeAction, err, "actionConf.Unmarshal"}
 	}
 	return nil
 }

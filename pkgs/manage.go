@@ -1,11 +1,11 @@
 package pkgs
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/eris-ltd/eris-cli/definitions"
+	"github.com/eris-ltd/eris-cli/errno"
 	"github.com/eris-ltd/eris-cli/files"
 
 	log "github.com/Sirupsen/logrus"
@@ -33,7 +33,7 @@ func ExportPackage(do *definitions.Do) error {
 		return err
 	}
 	if !f.IsDir() {
-		return fmt.Errorf("path (%s) is not a directory; please provide a path to a directory", do.Name)
+		return errno.ErrorPathIsNotDirectory(do.Name)
 	}
 
 	doPut := definitions.NowDo()

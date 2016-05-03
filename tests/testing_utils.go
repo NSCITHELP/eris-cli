@@ -40,7 +40,7 @@ func TestsInit(testType string) (err error) {
 	// run correctly.
 	config.ChangeErisDir(ErisDir)
 	common.InitErisDir()
-	util.DockerConnect(false, "eris")
+	IfExit(util.DockerConnect(false, "eris"))
 
 	// this dumps the ipfs and keys services defs into the temp dir which
 	// has been set as the erisRoot.

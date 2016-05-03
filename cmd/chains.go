@@ -8,6 +8,7 @@ import (
 	chns "github.com/eris-ltd/eris-cli/chains"
 	"github.com/eris-ltd/eris-cli/config"
 	def "github.com/eris-ltd/eris-cli/definitions"
+	"github.com/eris-ltd/eris-cli/errno"
 	"github.com/eris-ltd/eris-cli/list"
 
 	. "github.com/eris-ltd/common/go/common"
@@ -132,37 +133,6 @@ You can redefine the chain ports accessible over the network with the --ports fl
 	Example: `$ eris chains new simplechain --ports 4000 -- map the first port from the definition file to the host port 40000
 $ eris chains new simplechain --ports 40000,50000- -- redefine the first and the second port mapping and autoincrement the rest
 $ eris chains new simplechain --ports 46656:50000 -- redefine the specific port mapping (published host port:exposed container port)`,
-}
-
-var chainsRegister = &cobra.Command{
-	Use:   "register NAME",
-	Short: "Register a blockchain on etcb (a blockchain for registering other blockchains).",
-	Long: `Register a blockchain on etcb.
-
-etcb is Eris's blockchain which is a public blockchain that can be used to
-register *other* blockchains. In other words it is an easy way to "share"
-your blockchains with others. [eris chains register] is made to work
-seamlessly with [eris chains install] so that other users and/or colleagues
-should be able to use your registered blockchain by simply using the install
-command.
-
-The [eris chains register] command is not the *only* way to
-share your blockchains. You can also export your chain definition file and
-genesis.json to IPFS, and share the hash of the chain definition file and
-genesis.json with any colleagues or users who need to be able to connect
-into the blockchain.`,
-	Run: RegisterChain,
-}
-
-var chainsInstall = &cobra.Command{
-	Use:   "install NAME",
-	Short: "Install a blockchain from the etcb registry.",
-	Long: `Install a blockchain from the etcb registry.
-
-Install an existing erisdb based blockchain for use locally.
-
-(Currently a work in progress.)`,
-	Run: InstallChain,
 }
 
 var chainsList = &cobra.Command{
@@ -414,28 +384,12 @@ func addChainsFlags() {
 	// chainsNew.PersistentFlags().StringVarP(&do.GenesisFile, "genesis", "g", "", "genesis.json file")
 	// chainsNew.PersistentFlags().StringSliceVarP(&do.ConfigOpts, "options", "", nil, "space separated <key>=<value> pairs to set in config.toml")
 	// chainsNew.PersistentFlags().StringVarP(&do.Priv, "priv", "", "", "pass in a priv_validator.json file (dev-only!)")
-	// chainsNew.PersistentFlags().UintVarP(&do.N, "N", "", 1, "make a new genesis.json with this many validators and create data containers for each")
 	buildFlag(chainsNew, do, "dir", "chain")
 	buildFlag(chainsNew, do, "env", "chain")
 	buildFlag(chainsNew, do, "publish", "chain")
 	buildFlag(chainsNew, do, "ports", "chain")
 	buildFlag(chainsNew, do, "links", "chain")
 	chainsNew.PersistentFlags().BoolVarP(&do.Logrotate, "logrotate", "z", false, "turn on logrotate as a dependency to handle long output")
-
-	// buildFlag(chainsRegister, do, "links", "chain")
-	// buildFlag(chainsRegister, do, "env", "chain")
-	// chainsRegister.PersistentFlags().StringVarP(&do.Pubkey, "pub", "p", "", "pubkey to use for registering the chain in etcb")
-	// chainsRegister.PersistentFlags().StringVarP(&do.Gateway, "etcb-host", "", "interblock.io:46657", "set the address of the etcb chain")
-	// chainsRegister.PersistentFlags().StringVarP(&do.ChainID, "etcb-chain", "", "etcb_testnet", "set the chain id of the etcb chain")
-
-	// buildFlag(chainsInstall, do, "publish", "chain")
-	// buildFlag(chainsInstall, do, "links", "chain")
-	// buildFlag(chainsInstall, do, "env", "chain")
-	// buildFlag(chainsInstall, do, "config", "chain")
-	// buildFlag(chainsInstall, do, "serverconf", "chain")
-	// buildFlag(chainsInstall, do, "dir", "chain")
-	// chainsInstall.PersistentFlags().StringVarP(&do.ChainID, "id", "", "", "id of the chain to fetch")
-	// chainsInstall.PersistentFlags().StringVarP(&do.Gateway, "etcb-host", "", "interblock.io:46657", "set the address of the etcb chain")
 
 	buildFlag(chainsStart, do, "publish", "chain")
 	buildFlag(chainsStart, do, "ports", "chain")
@@ -500,7 +454,7 @@ func ExecChain(cmd *cobra.Command, args []string) {
 	args = args[1:]
 	if !do.Operations.Interactive {
 		if len(args) == 0 {
-			Exit(fmt.Errorf("Non-interactive exec sessions must provide arguments to execute"))
+			Exit(errno.ErrorNonInteractiveExec)
 		}
 	}
 	if len(args) == 1 {
@@ -519,17 +473,6 @@ func KillChain(cmd *cobra.Command, args []string) {
 	IfExit(ArgCheck(1, "ge", cmd, args))
 	do.Name = args[0]
 	IfExit(chns.KillChain(do))
-}
-
-// fetch and install a chain
-//
-// the idea here is you will either specify a chainName as the arg and that will
-// double as the chainID, or you want a local reference name for the chain, so you specify
-// the chainID with a flag and give your local reference name as the arg
-func InstallChain(cmd *cobra.Command, args []string) {
-	IfExit(ArgCheck(1, "ge", cmd, args))
-	do.Name = args[0]
-	IfExit(chns.InstallChain(do))
 }
 
 // make the genesis files for a chain
@@ -569,14 +512,6 @@ func NewChain(cmd *cobra.Command, args []string) {
 	do.Name = args[0]
 	do.Run = true
 	IfExit(chns.NewChain(do))
-}
-
-// register a chain in the etcb chain registry
-func RegisterChain(cmd *cobra.Command, args []string) {
-	IfExit(ArgCheck(2, "ge", cmd, args))
-	do.Name = args[0]
-	do.Operations.Args = args[1:]
-	IfExit(chns.RegisterChain(do))
 }
 
 // import a chain definition file

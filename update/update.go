@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/eris-ltd/eris-cli/definitions"
+	"github.com/eris-ltd/eris-cli/errno"
 	"github.com/eris-ltd/eris-cli/util"
 
 	log "github.com/Sirupsen/logrus"
@@ -26,7 +27,7 @@ func UpdateEris(do *definitions.Do) error {
 		// ensure git and go are installed
 		hasGit, hasGo := CheckGitAndGo(true, true)
 		if !hasGit || !hasGo {
-			return fmt.Errorf("either git or go is not installed. both are required for non-binary update")
+			return errno.ErrorNeedGitAndGo
 		}
 
 		log.WithField("branch", do.Branch).Warn("Building eris binary via go with:")
@@ -39,7 +40,7 @@ func UpdateEris(do *definitions.Do) error {
 		}
 
 	} else {
-		return fmt.Errorf("The marmots could not figure out how eris was installed. Exiting.")
+		return errno.ErrorMarmotWTF
 	}
 
 	//checks for deprecated dir names and renames them
@@ -131,7 +132,7 @@ Do you wish to continue?`, trimEris)
 			if util.QueryYesOrNo(goWarn) == util.Yes {
 				return "go", erisLook, nil
 			} else {
-				return "", "", fmt.Errorf("Permission to update denied; exiting.")
+				return "", "", errno.ErrorPermissionNotGiven("update")
 			}
 		} else { // eris is installed via binary
 			binWarn := fmt.Sprintf(`The marmots have detected a binary installation located at: (%s)
@@ -140,11 +141,11 @@ Do you wish to continue?`, trimEris)
 			if util.QueryYesOrNo(binWarn) == util.Yes {
 				return "binary", erisLook, nil
 			} else {
-				return "", "", fmt.Errorf("Permission to update denied; exiting.")
+				return "", "", errno.ErrorPermissionNotGiven("update")
 			}
 		}
 	}
-	return "", "", fmt.Errorf("could not determine how eris is installed")
+	return "", "", errno.ErrorMarmotWTF
 }
 
 func CheckGitAndGo(git, gO bool) (bool, bool) {

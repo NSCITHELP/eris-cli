@@ -9,6 +9,7 @@ import (
 
 	"github.com/eris-ltd/eris-cli/chains"
 	"github.com/eris-ltd/eris-cli/definitions"
+	"github.com/eris-ltd/eris-cli/errno"
 	"github.com/eris-ltd/eris-cli/services"
 
 	log "github.com/Sirupsen/logrus"
@@ -105,7 +106,7 @@ func PerformCommand(action *definitions.Action, actionVars []string, quiet bool)
 
 		prev, err := cmd.Output()
 		if err != nil {
-			return fmt.Errorf("error running command (%v): %s", err, prev)
+			return errno.ErrorRunningCommand(string(prev), err)
 		}
 
 		if !quiet {

@@ -1,12 +1,13 @@
 package loaders
 
 import (
-	"fmt"
+	//"fmt"
 	"path"
 	"path/filepath"
 
 	"github.com/eris-ltd/eris-cli/config"
 	"github.com/eris-ltd/eris-cli/definitions"
+	"github.com/eris-ltd/eris-cli/errno"
 	"github.com/eris-ltd/eris-cli/util"
 	"github.com/eris-ltd/eris-cli/version"
 
@@ -33,19 +34,19 @@ func LoadChainDefinition(chainName string, newCont bool) (*definitions.Chain, er
 	chain.Operations.ContainerType = definitions.TypeChain
 	chain.Operations.Labels = util.Labels(chain.Name, chain.Operations)
 	if err := setChainDefaults(chain); err != nil {
-		return nil, err
+		return nil, &errno.InvalidLoadingError{definitions.TypeChain, err, "setChainDefaults"}
 	}
 
 	chainConf, err := config.LoadViperConfig(filepath.Join(ChainsPath), chainName, "chain")
 	if err != nil {
-		return nil, err
+		return nil, &errno.InvalidLoadingError{definitions.TypeChain, err, "config.LoadViperConfig"}
 	}
 
 	// marshal chain and always reset the operational requirements
 	// this will make sure to sync with docker so that if changes
 	// have occured in the interim they are caught.
 	if err = MarshalChainDefinition(chainConf, chain); err != nil {
-		return nil, err
+		return nil, &errno.InvalidLoadingError{definitions.TypeChain, err, "MarshalChainDefinition"}
 	}
 
 	// Docker 1.6 (which eris doesn't support) had different linking mechanism.
@@ -128,9 +129,8 @@ func MockChainDefinition(chainName, chainID string, newCont bool) *definitions.C
 func MarshalChainDefinition(chainConf *viper.Viper, chain *definitions.Chain) error {
 	log.Debug("Marshalling chain")
 	chnTemp := definitions.BlankChain()
-	err := chainConf.Unmarshal(chnTemp)
-	if err != nil {
-		return fmt.Errorf("The marmots coult not marshal from viper to chain def: %v", err)
+	if err := chainConf.Unmarshal(chnTemp); err != nil {
+		return err
 	}
 
 	util.Merge(chain.Service, chnTemp.Service)

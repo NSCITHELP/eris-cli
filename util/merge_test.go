@@ -3,6 +3,8 @@ package util
 import (
 	"reflect"
 	"testing"
+
+	"github.com/eris-ltd/eris-cli/errno"
 )
 
 type S struct {
@@ -158,37 +160,37 @@ func TestMergeBasic(t *testing.T) {
 }
 
 func TestMergeError(t *testing.T) {
-	if err := Merge(nil, nil); err != ErrMergeParameters {
+	if err := Merge(nil, nil); err != errno.ErrorMergeParameters {
 		t.Fatalf("e1: expected error, got %v", err)
 	}
-	if err := Merge(S{}, nil); err != ErrMergeParameters {
+	if err := Merge(S{}, nil); err != errno.ErrorMergeParameters {
 		t.Fatalf("e2: expected error, got %v", err)
 	}
-	if err := Merge(nil, S{}); err != ErrMergeParameters {
+	if err := Merge(nil, S{}); err != errno.ErrorMergeParameters {
 		t.Fatalf("e3: expected error, got %v", err)
 	}
-	if err := Merge(S{}, S{}); err != ErrMergeParameters {
+	if err := Merge(S{}, S{}); err != errno.ErrorMergeParameters {
 		t.Fatalf("e4: expected error, got %v", err)
 	}
-	if err := Merge(&S{}, "a"); err != ErrMergeParameters {
+	if err := Merge(&S{}, "a"); err != errno.ErrorMergeParameters {
 		t.Fatalf("e5: expected error, got %v", err)
 	}
-	if err := Merge("a", &S{}); err != ErrMergeParameters {
+	if err := Merge("a", &S{}); err != errno.ErrorMergeParameters {
 		t.Fatalf("e6: expected error, got %v", err)
 	}
-	if err := Merge(&struct{ A string }{A: "a"}, &S{}); err != ErrMergeParameters {
+	if err := Merge(&struct{ A string }{A: "a"}, &S{}); err != errno.ErrorMergeParameters {
 		t.Fatalf("e7: expected error, got %v", err)
 	}
-	if err := Merge(&S{}, &struct{ A string }{A: "a"}); err != ErrMergeParameters {
+	if err := Merge(&S{}, &struct{ A string }{A: "a"}); err != errno.ErrorMergeParameters {
 		t.Fatalf("e8: expected error, got %v", err)
 	}
-	if err := Merge(&[]int{}, &[]int{}); err != ErrMergeParameters {
+	if err := Merge(&[]int{}, &[]int{}); err != errno.ErrorMergeParameters {
 		t.Fatalf("e9: expected error, got %v", err)
 	}
-	if err := Merge(&[]int{}, &S{}); err != ErrMergeParameters {
+	if err := Merge(&[]int{}, &S{}); err != errno.ErrorMergeParameters {
 		t.Fatalf("e10: expected error, got %v", err)
 	}
-	if err := Merge(&S{}, &[]int{}); err != ErrMergeParameters {
+	if err := Merge(&S{}, &[]int{}); err != errno.ErrorMergeParameters {
 		t.Fatalf("e11: expected error, got %v", err)
 	}
 }

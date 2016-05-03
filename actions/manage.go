@@ -2,19 +2,19 @@ package actions
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/eris-ltd/common/go/ipfs"
 	"github.com/eris-ltd/eris-cli/definitions"
+	"github.com/eris-ltd/eris-cli/errno"
 	"github.com/eris-ltd/eris-cli/loaders"
 	"github.com/eris-ltd/eris-cli/perform"
 	"github.com/eris-ltd/eris-cli/util"
 
 	log "github.com/Sirupsen/logrus"
 	. "github.com/eris-ltd/common/go/common"
+	"github.com/eris-ltd/common/go/ipfs"
 )
 
 func NewAction(do *definitions.Do) error {
@@ -109,7 +109,7 @@ func EditAction(do *definitions.Do) error {
 
 func RenameAction(do *definitions.Do) error {
 	if do.Name == do.NewName {
-		return fmt.Errorf("Cannot rename to same name")
+		return errno.ErrorRenaming
 	}
 
 	do.Name = strings.Replace(do.Name, " ", "_", -1)
@@ -127,13 +127,9 @@ func RenameAction(do *definitions.Do) error {
 	log.WithField("file", do.Name).Debug("Finding action definition file")
 	oldFile := util.GetFileByNameAndType("actions", do.Name)
 	if oldFile == "" {
-		return fmt.Errorf("Could not find that action definition file.")
+		return errno.ErrorCantFindAction
 	}
 	log.WithField("file", oldFile).Debug("Found action definition file")
-
-	// if !strings.Contains(oldFile, ActionsPath) {
-	// 	oldFile = filepath.Join(ActionsPath, oldFile) + ".toml"
-	// }
 
 	var newFile string
 	newNameBase := strings.Replace(strings.Replace(do.NewName, " ", "_", -1), filepath.Ext(do.NewName), "", 1)
@@ -182,11 +178,12 @@ func RmAction(do *definitions.Do) error {
 	return nil
 }
 
+// TODO use files put
 func exportFile(actionName string) (string, error) {
 	var err error
 	fileName := util.GetFileByNameAndType("actions", actionName)
 	if fileName == "" {
-		return "", fmt.Errorf("no file to export")
+		return "", errno.ErrorNoFileToExport
 	}
 
 	var hash string

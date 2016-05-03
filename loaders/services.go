@@ -1,17 +1,19 @@
 package loaders
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
 
 	"github.com/eris-ltd/eris-cli/config"
 	"github.com/eris-ltd/eris-cli/definitions"
+	def "github.com/eris-ltd/eris-cli/definitions"
+	"github.com/eris-ltd/eris-cli/errno"
 	"github.com/eris-ltd/eris-cli/util"
 
 	log "github.com/Sirupsen/logrus"
 	. "github.com/eris-ltd/common/go/common"
-	def "github.com/eris-ltd/eris-cli/definitions"
 
 	"github.com/spf13/viper"
 )
@@ -25,19 +27,19 @@ func LoadServiceDefinition(servName string, newCont bool) (*definitions.ServiceD
 	srv.Operations.Labels = util.Labels(servName, srv.Operations)
 	serviceConf, err := loadServiceDefinition(servName)
 	if err != nil {
-		return nil, err
+		return nil, &errno.InvalidLoadingError{def.TypeService, err, "loadServiceDefinition"}
 	}
 
 	if err = MarshalServiceDefinition(serviceConf, srv); err != nil {
-		return nil, err
+		return nil, &errno.InvalidLoadingError{def.TypeService, err, "MarshalServiceDefintion"}
 	}
 
 	if srv.Service == nil {
-		return nil, fmt.Errorf("No service given.")
+		return nil, &errno.InvalidLoadingError{def.TypeService, errors.New("no service given."), ""}
 	}
 
 	if err = checkImage(srv.Service); err != nil {
-		return nil, err
+		return nil, &errno.InvalidLoadingError{def.TypeService, err, "checkImage"}
 	}
 
 	// Docker 1.6 (which eris doesn't support) had different linking mechanism.
@@ -65,8 +67,7 @@ func MockServiceDefinition(servName string, newCont bool) *definitions.ServiceDe
 func MarshalServiceDefinition(serviceConf *viper.Viper, srv *definitions.ServiceDefinition) error {
 	err := serviceConf.Unmarshal(srv)
 	if err != nil {
-		// Vipers error messages are atrocious.
-		return fmt.Errorf("Sorry, the marmots could not figure that service definition out.\nPlease check for known services with [eris services ls --known] and retry.\n")
+		return err
 	}
 
 	// toml bools don't really marshal well

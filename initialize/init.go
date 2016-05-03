@@ -1,14 +1,14 @@
 package initialize
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/eris-ltd/eris-cli/definitions"
+	"github.com/eris-ltd/eris-cli/errno"
 	"github.com/eris-ltd/eris-cli/util"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/eris-ltd/common/go/common"
 )
 
@@ -39,7 +39,7 @@ func Initialize(do *definitions.Do) error {
 	//drops: services, actions, & chain defaults from toadserver
 	log.Warn("Initializing default service, action, and chain files")
 	if err := InitDefaults(do, newDir); err != nil {
-		return fmt.Errorf("Error:\tcould not instantiate default services.\n%s\n", err)
+		return errno.ErrorInitDefaults(err)
 	}
 
 	if !do.Quiet {
@@ -97,18 +97,16 @@ func InitDefaults(do *definitions.Do, newDir bool) error {
 	actPath = common.ActionsPath
 	chnPath = common.ChainsPath
 
-	tsErrorFix := "toadserver may be down: re-run with `--source=rawgit`"
-
 	if err := dropServiceDefaults(srvPath, do.Source); err != nil {
-		return fmt.Errorf("%v\n%s\n", err, tsErrorFix)
+		return errno.ErrorDropDefaults(err)
 	}
 
 	if err := dropActionDefaults(actPath, do.Source); err != nil {
-		return fmt.Errorf("%v\n%s\n", err, tsErrorFix)
+		return errno.ErrorDropDefaults(err)
 	}
 
 	if err := dropChainDefaults(chnPath, do.Source); err != nil {
-		return fmt.Errorf("%v\n%s\n", err, tsErrorFix)
+		return errno.ErrorDropDefaults(err)
 	}
 
 	log.WithField("root", common.ErisRoot).Warn("Initialized Eris root directory")
@@ -121,14 +119,14 @@ func checkThenInitErisRoot(force bool) (bool, error) {
 	if force { //for testing only
 		log.Info("Force initializing Eris root directory")
 		if err := common.InitErisDir(); err != nil {
-			return true, fmt.Errorf("Error:\tcould not initialize the eris root directory.\n%s\n", err)
+			return true, errno.ErrorInitErisRoot(err)
 		}
 		return true, nil
 	}
 	if !util.DoesDirExist(common.ErisRoot) {
 		log.Warn("Eris root directory doesn't exist. The marmots will initialize it for you")
 		if err := common.InitErisDir(); err != nil {
-			return true, fmt.Errorf("Error: couldn't initialize the Eris root directory: %v", err)
+			return true, errno.ErrorInitErisRoot(err)
 		}
 		newDir = true
 	} else { // ErisRoot exists, prompt for overwrite
@@ -139,7 +137,7 @@ func checkThenInitErisRoot(force bool) (bool, error) {
 
 func checkIfMigrationRequired(doYes bool) error {
 	if err := util.MigrateDeprecatedDirs(common.DirsToMigrate, !doYes); err != nil {
-		return fmt.Errorf("Could not migrate directories.\n%s", err)
+		return errno.ErrorMigratingDirs(err)
 	}
 	return nil
 }
@@ -160,7 +158,7 @@ func checkIfCanOverwrite(doYes bool) error {
 	} else {
 		log.Warn("The marmots will not proceed without your permission")
 		log.Warn("Please backup your files and try again")
-		return fmt.Errorf("Error: no permission given to overwrite services and actions")
+		return errno.ErrorNoPermGiven
 	}
 	return nil
 }
