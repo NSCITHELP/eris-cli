@@ -21,20 +21,11 @@ import (
 	"strings"
 	"unicode"
 
-<<<<<<< 3d800c1d5eef9a7320e55d391d8c4f6db0e8cfc1:vendor/github.com/spf13/viper/util.go
 	"github.com/BurntSushi/toml"
 	"github.com/magiconair/properties"
 	"github.com/spf13/cast"
 	jww "github.com/spf13/jwalterweatherman"
 	"gopkg.in/yaml.v2"
-=======
-	"github.com/eris-ltd/eris-cli/Godeps/_workspace/src/github.com/BurntSushi/toml"
-	//"github.com/eris-ltd/eris-cli/Godeps/_workspace/src/github.com/hashicorp/hcl"
-	"github.com/eris-ltd/eris-cli/Godeps/_workspace/src/github.com/magiconair/properties"
-	"github.com/eris-ltd/eris-cli/Godeps/_workspace/src/github.com/spf13/cast"
-	jww "github.com/eris-ltd/eris-cli/Godeps/_workspace/src/github.com/spf13/jwalterweatherman"
-	"github.com/eris-ltd/eris-cli/Godeps/_workspace/src/gopkg.in/yaml.v2"
->>>>>>> remotes; try 1:Godeps/_workspace/src/github.com/spf13/viper/util.go
 )
 
 // Denotes failing to parse configuration file.

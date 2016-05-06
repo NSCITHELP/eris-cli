@@ -10,10 +10,9 @@ import (
 	//"github.com/eris-ltd/eris-cli/util"
 	//"github.com/eris-ltd/eris-cli/version"
 
-	log "github.com/eris-ltd/eris-cli/Godeps/_workspace/src/github.com/Sirupsen/logrus"
-	. "github.com/eris-ltd/eris-cli/Godeps/_workspace/src/github.com/eris-ltd/common/go/common"
-
-	"github.com/eris-ltd/eris-cli/Godeps/_workspace/src/github.com/spf13/viper"
+	log "github.com/Sirupsen/logrus"
+	. "github.com/eris-ltd/common/go/common"
+	"github.com/spf13/viper"
 )
 
 func LoadRemoteDefinition(remName string) (*definitions.RemoteDefinition, error) {

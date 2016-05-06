@@ -57,8 +57,6 @@ func DockerConnect(verbose bool, machName string) { // TODO: return an error...?
 				IfExit(fmt.Errorf("Error getting Docker Machine details for connection via TLS.\nERROR =>\t\t\t%v\n\nEither re-run the command without a machine or correct your machine name.\n", err))
 			}
 
-			dockerCertPath = mcndirs.GetMachineCertDir()
-
 			log.WithFields(log.Fields{
 				"host":      dockerHost,
 				"cert path": dockerCertPath,
@@ -216,7 +214,7 @@ func getMachineDeets(machName string) (string, string, error) {
 	}
 
 	log.Info("Querying host and user have access to the right files for TLS connection to Docker")
-	if err := checkKeysAndCerts(mcndirs.GetMachineCertDir()); err != nil {
+	if err := checkKeysAndCerts(dPath); err != nil {
 		return "", "", err
 	}
 	log.Debug("Certificate files look good")
@@ -385,7 +383,7 @@ func connectDockerTLS(dockerHost, dockerCertPath string) error {
 }
 
 func popHostAndPath() (string, string) {
-	return os.Getenv("DOCKER_HOST"), mcndirs.GetMachineCertDir()
+	return os.Getenv("DOCKER_HOST"), os.Getenv("DOCKER_CERT_PATH")
 }
 
 func checkKeysAndCerts(dPath string) error {

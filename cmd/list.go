@@ -66,20 +66,9 @@ func buildListCommand() {
 	List.Flags().StringVarP(&do.Format, "format", "f", "", "alternate format for columnized output")
 }
 
-<<<<<<< 3d800c1d5eef9a7320e55d391d8c4f6db0e8cfc1
 func ListAll() {
 	if do.All {
 		do.Format = "extended"
-=======
-	typs := []string{"chains", "services"}
-	for _, typ := range typs {
-		if err := list.ListAll(do, typ); err != nil {
-			return
-		}
-	}
-	if err := list.ListDatas(do); err != nil {
-		return
->>>>>>> remotes; try 1
 	}
 	if do.JSON {
 		do.Format = "json"

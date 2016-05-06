@@ -8,13 +8,12 @@ import (
 
 	"github.com/eris-ltd/eris-cli/config"
 	"github.com/eris-ltd/eris-cli/definitions"
-	"github.com/eris-ltd/eris-cli/list"
-	"github.com/eris-ltd/eris-cli/loaders"
-	"github.com/eris-ltd/eris-cli/perform"
+	//"github.com/eris-ltd/eris-cli/loaders"
+	//"github.com/eris-ltd/eris-cli/perform"
 	"github.com/eris-ltd/eris-cli/util"
 
-	log "github.com/eris-ltd/eris-cli/Godeps/_workspace/src/github.com/Sirupsen/logrus"
-	. "github.com/eris-ltd/eris-cli/Godeps/_workspace/src/github.com/eris-ltd/common/go/common"
+	log "github.com/Sirupsen/logrus"
+	. "github.com/eris-ltd/common/go/common"
 )
 
 func NewRemote(do *definitions.Do) error {
@@ -47,40 +46,6 @@ func NewRemote(do *definitions.Do) error {
 	return nil
 }
 
-func ListRemotes(do *definitions.Do) error {
-	rems, err := list.ListKnown("remotes")
-	if err != nil {
-		return err
-	}
-	if rems == "" {
-		log.Warn("No known remotes")
-		return nil
-	}
-
-	knowns := strings.Split(rems, "\n")
-	log.WithField("=>", knowns[0]).Warn("The known remotes on your host kind marmot:")
-	knowns = append(knowns[:0], knowns[1:]...)
-	for _, known := range knowns {
-		log.WithField("=>", known).Warn()
-	}
-
-	hosts, err := list.ListExistingRemotes()
-	if err != nil {
-		return err
-	}
-	if len(hosts) == 0 {
-		log.Warn("No hosts found for that remote.")
-		return nil
-	}
-
-	log.WithField("=>", hosts[0]).Warn("The existing remote hosts kind marmot:")
-	hosts = append(hosts[:0], hosts[1:]...)
-	for _, host := range hosts {
-		log.WithField("=>", host).Warn()
-	}
-	return nil
-}
-
 func EditRemote(do *definitions.Do) error {
 	remDefFile := FindRemoteDefinitionFile(do.Name)
 	log.WithField("=>", remDefFile).Info("Editing remote")
@@ -107,14 +72,14 @@ func CatRemote(do *definitions.Do) error {
 }
 
 func RemoveRemote(do *definitions.Do) error {
-	remDef, err := loaders.LoadRemoteDefinition(do.Name)
-	if err != nil {
-		return err
-	}
+	//remDef, err := loaders.LoadRemoteDefinition(do.Name)
+	//if err != nil {
+	//	return err
+	//}
 
-	if err := perform.RemoveRemote(remDef); err != nil {
-		return err
-	}
+	//if err := perform.RemoveRemote(remDef); err != nil {
+	//	return err
+	//}
 	return nil
 }
 

@@ -129,16 +129,12 @@ func AddCommands() {
 	ErisCmd.AddCommand(Keys)
 	buildActionsCommand()
 	ErisCmd.AddCommand(Actions)
-<<<<<<< 3d800c1d5eef9a7320e55d391d8c4f6db0e8cfc1
-=======
 
-	// TODO
 	// buildApplicationsCommand()
 	// ErisCmd.AddCommand(Applications)
-	buildRemotesCommand()
-	ErisCmd.AddCommand(Remotes)
+	//buildRemotesCommand()
+	//ErisCmd.AddCommand(Remotes)
 
->>>>>>> remotes; try 1
 	buildFilesCommand()
 	ErisCmd.AddCommand(Files)
 	buildDataCommand()

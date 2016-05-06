@@ -149,21 +149,8 @@ on local host machines. If you already have the images, they'll be updated.
 		log.WithField("ERIS_PULL_APPROVE", "true").Warn("Skip confirmation with")
 		log.Warn()
 
-<<<<<<< 3d800c1d5eef9a7320e55d391d8c4f6db0e8cfc1
 		if util.QueryYesOrNo("Do you wish to continue?") == util.Yes {
 			if err := pullDefaultImages(); err != nil {
-=======
-		fmt.Print("Do you wish to continue? (y/n): ")
-		if _, err := fmt.Scanln(&input); err != nil {
-			return fmt.Errorf("Error reading from stdin: %v\n", err)
-		}
-		if input == "Y" || input == "y" || input == "YES" || input == "Yes" || input == "yes" {
-<<<<<<< 1503a7f6463826b7b85517fa70716fa78d2375a1
-			if err := pullDefaultImages(images); err != nil {
->>>>>>> remotes; try 1
-=======
-			if err := pullDefaultImages(); err != nil {
->>>>>>> remotes 2
 				return err
 			}
 			log.Warn("Successfully pulled default images")

@@ -5,7 +5,7 @@ import (
 
 	rem "github.com/eris-ltd/eris-cli/remotes"
 
-	log "github.com/Sirupsen/logrus"
+	//log "github.com/Sirupsen/logrus"
 	. "github.com/eris-ltd/common/go/common"
 	"github.com/spf13/cobra"
 )
@@ -126,7 +126,7 @@ func InitRemote(cmd *cobra.Command, args []string) {
 func ListRemotes(cmd *cobra.Command, args []string) {
 	//flags only (coming)
 	IfExit(ArgCheck(0, "eq", cmd, args))
-	IfExit(rem.ListRemotes(do))
+	//IfExit(rem.ListRemotes(do))
 }
 
 func DoRemote(cmd *cobra.Command, args []string) {
