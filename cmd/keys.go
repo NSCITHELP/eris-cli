@@ -6,6 +6,7 @@ import (
 
 	"github.com/eris-ltd/eris-cli/keys"
 
+	log "github.com/Sirupsen/logrus"
 	. "github.com/eris-ltd/common/go/common"
 	"github.com/spf13/cobra"
 )
@@ -110,7 +111,7 @@ func addKeysFlags() {
 	keysExport.Flags().StringVarP(&do.Address, "addr", "", "", "address of key to export")
 	keysExport.Flags().BoolVarP(&do.All, "all", "", false, "export all keys. do not provide any arguments")
 
-	keysImport.Flags().StringVarP(&do.Source, "src", "", DefKeysPathHost, "source on host to import from")
+	keysImport.PersistentFlags().StringVarP(&do.Source, "src", "", DefKeysPathHost, "source on host to import from")
 	keysImport.Flags().StringVarP(&do.Address, "addr", "", "", "address of key to import")
 	keysImport.Flags().BoolVarP(&do.All, "all", "", false, "import all keys. do not provide any arguments")
 
@@ -147,6 +148,8 @@ func ImportKey(cmd *cobra.Command, args []string) {
 		IfExit(ArgCheck(1, "eq", cmd, args))
 		do.Address = strings.TrimSpace(args[0])
 	}
+//	do.Source = DefKeysPathHost
+	log.Warn("cmd source", do.Source)
 	IfExit(keys.ImportKey(do))
 }
 

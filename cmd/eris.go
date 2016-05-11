@@ -63,7 +63,7 @@ Complete documentation is available at https://docs.erisindustries.com
 			do := definitions.NowDo()
 			do.Yes = true
 			do.Pull = false
-			do.Source = "rawgit"
+			//do.Source = "rawgit"
 			do.Quiet = true
 			if err := initialize.Initialize(do); err != nil {
 				log.Errorf("Error: couldn't initialize the Eris root directory: %v", err)

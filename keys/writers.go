@@ -12,6 +12,7 @@ import (
 	"github.com/eris-ltd/eris-cli/definitions"
 	srv "github.com/eris-ltd/eris-cli/services"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/eris-ltd/common/go/common"
 )
 
@@ -91,6 +92,7 @@ func ImportKey(do *definitions.Do) error {
 	//if default given (from flag), join addrs
 	//dest in container
 	do.Destination = path.Join(common.ErisContainerRoot, "keys", "data", do.Address)
+	log.Warn("source1", do.Source)
 
 	if do.All && do.Address == "" {
 		doLs := definitions.NowDo()
@@ -113,7 +115,9 @@ func ImportKey(do *definitions.Do) error {
 		//for each, import data
 
 	} else {
+		log.Warn("source1", do.Source)
 		if do.Source == filepath.Join(common.KeysPath, "data") {
+			log.Warn("source2", do.Source)
 			do.Source = filepath.Join(common.KeysPath, "data", do.Address, do.Address)
 		} else { // either relative or absolute path given. get absolute
 			wd, err := os.Getwd()
@@ -121,6 +125,7 @@ func ImportKey(do *definitions.Do) error {
 				return err
 			}
 			do.Source = common.AbsolutePath(wd, do.Source)
+			log.Warn("source3", do.Source)
 		}
 		if err := data.ImportData(do); err != nil {
 			return err

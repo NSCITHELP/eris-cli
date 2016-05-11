@@ -13,6 +13,9 @@ import (
 )
 
 func Initialize(do *definitions.Do) error {
+	if do.Source == "" {
+		do.Source = "rawgit"
+	}
 	newDir, err := checkThenInitErisRoot(do.Quiet)
 	if err != nil {
 		return err
