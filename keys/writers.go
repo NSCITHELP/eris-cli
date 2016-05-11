@@ -2,7 +2,7 @@ package keys
 
 import (
 	"io"
-	"os"
+	//"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -115,8 +115,7 @@ func ImportKey(do *definitions.Do) error {
 		//for each, import data
 
 	} else {
-		log.Warn("source1", do.Source)
-		if do.Source == filepath.Join(common.KeysPath, "data") {
+		/*if do.Source == ""
 			log.Warn("source2", do.Source)
 			do.Source = filepath.Join(common.KeysPath, "data", do.Address, do.Address)
 		} else { // either relative or absolute path given. get absolute
@@ -126,7 +125,7 @@ func ImportKey(do *definitions.Do) error {
 			}
 			do.Source = common.AbsolutePath(wd, do.Source)
 			log.Warn("source3", do.Source)
-		}
+		}*/
 		if err := data.ImportData(do); err != nil {
 			return err
 		}

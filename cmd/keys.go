@@ -111,7 +111,7 @@ func addKeysFlags() {
 	keysExport.Flags().StringVarP(&do.Address, "addr", "", "", "address of key to export")
 	keysExport.Flags().BoolVarP(&do.All, "all", "", false, "export all keys. do not provide any arguments")
 
-	keysImport.PersistentFlags().StringVarP(&do.Source, "src", "", DefKeysPathHost, "source on host to import from")
+	keysImport.Flags().StringVarP(&do.Source, "src", "", DefKeysPathHost, "source on host to import from")
 	keysImport.Flags().StringVarP(&do.Address, "addr", "", "", "address of key to import")
 	keysImport.Flags().BoolVarP(&do.All, "all", "", false, "import all keys. do not provide any arguments")
 
@@ -147,6 +147,9 @@ func ImportKey(cmd *cobra.Command, args []string) {
 	} else {
 		IfExit(ArgCheck(1, "eq", cmd, args))
 		do.Address = strings.TrimSpace(args[0])
+	}
+	if do.Source == "" {
+		do.Source = filepath.Join(KeysPath, "data", do.Address, do.Address)
 	}
 //	do.Source = DefKeysPathHost
 	log.Warn("cmd source", do.Source)
