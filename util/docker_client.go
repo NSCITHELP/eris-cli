@@ -75,7 +75,7 @@ func DockerConnect(verbose bool, machName string) error {
 		}).Debug()
 
 		if err := connectDockerTLS(dockerHost, dockerCertPath); err != nil {
-			return errno.ErrorConnectDockerTLS(err)
+			return &errno.ErisError{404, errno.BaseError(errno.ErrorConnectDockerTLS, err), ""}
 		}
 		log.Debug("Successfully connected to Docker daemon")
 
@@ -96,7 +96,7 @@ func CheckDockerClient() error {
 
 		if runtime.GOOS == "windows" {
 			if err := prepWin(); err != nil {
-				return errno.ErrorDockerWindows(err)
+				return &errno.ErisError{404, errno.BaseError(errno.ErrorDockerWindows, err), ""}
 			}
 		}
 
@@ -155,7 +155,7 @@ func getMachineDeets(machName string) (string, string, error) {
 	cmd := exec.Command("docker-machine", "url", machName)
 	cmd.Stdout = out
 	if err := cmd.Run(); err != nil {
-		return "", "", errno.ErrorConnectDockerMachine(machName, err)
+		return "", "", &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorConnectDockerMachine, machName, err), ""}
 	}
 	dHost = strings.TrimSpace(out.String())
 	log.WithField("host", dHost).Debug()
@@ -166,7 +166,7 @@ func getMachineDeets(machName string) (string, string, error) {
 	cmd2.Stdout = out2
 	//cmd2.Stderr = os.Stderr
 	if err := cmd2.Run(); err != nil {
-		return "", "", errno.ErrorConnectDockerMachine(machName, err)
+		return "", "", &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorConnectDockerMachine, machName, err), ""}
 	}
 	dPath = out2.String()
 	dPath = strings.Replace(dPath, "'", "", -1)
@@ -174,7 +174,7 @@ func getMachineDeets(machName string) (string, string, error) {
 	log.WithField("cert path", dPath).Debug()
 
 	if dPath == "" || dHost == "" {
-		return "", "", errno.ErrorConnectDockerMachine(machName, nil)
+		return "", "", &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorConnectDockerMachine, machName, nil), ""}
 	}
 
 	log.Info("Querying host and user have access to the right files for TLS connection to Docker")
@@ -316,7 +316,7 @@ func startErisMachine() error {
 	cmd := "docker-machine"
 	args := []string{"start", "eris"}
 	if err := exec.Command(cmd, args...).Run(); err != nil {
-		return errno.ErrorStartingDockerMachine(err)
+		return &errno.ErisError{404, errno.BaseError(errno.ErrorStartingDockerMachine, err), ""}
 	}
 	log.Debug("Eris Docker Machine started")
 
@@ -391,11 +391,11 @@ func prepWin() error {
 func setIPFSHostViaDockerHost(dockerHost string) {
 	u, err := url.Parse(dockerHost)
 	if err != nil {
-		IfExit(errno.ErrorParseIPFS(errno.ParseIPFShost, err))
+		IfExit(&errno.ErisError{404, errno.BaseErrorESE(errno.ErrorParseIPFS, errno.ParseIPFShost, err), ""})
 	}
 	dIP, _, err := net.SplitHostPort(u.Host)
 	if err != nil {
-		IfExit(errno.ErrorParseIPFS(errno.SplitHP, err))
+		IfExit(&errno.ErisError{404, errno.BaseErrorESE(errno.ErrorParseIPFS, errno.SplitHP, err), ""})
 	}
 	dockerIP := fmt.Sprintf("%s%s", "http://", dIP)
 

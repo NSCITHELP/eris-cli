@@ -19,7 +19,7 @@ func Edit(conf *viper.Viper, configVals []string) error {
 		for _, v := range configVals {
 			spl := strings.Split(v, "=")
 			if len(spl) != 2 {
-				return errno.ErrorBadConfigOptions(v)
+				return &errno.ErisError{404, errno.BaseErrorES(errno.ErrorBadConfigOptions, v), ""}
 			}
 			key, val := spl[0], spl[1]
 			spl = strings.Split(val, ",")

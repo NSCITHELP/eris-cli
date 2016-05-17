@@ -106,7 +106,7 @@ func PerformCommand(action *definitions.Action, actionVars []string, quiet bool)
 
 		prev, err := cmd.Output()
 		if err != nil {
-			return errno.ErrorRunningCommand(string(prev), err)
+			return &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorRunningCommand, string(prev), err), "bad action"}
 		}
 
 		if !quiet {

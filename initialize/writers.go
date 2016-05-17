@@ -37,7 +37,7 @@ func dropActionDefaults(dir, from string) error {
 	}
 	donot := "do_not_use.toml"
 	if err := writeDefaultFile(common.ActionsPath, donot, defAct); err != nil {
-		return errno.ErrorWritingFile(donot, err)
+		return &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorWritingFile, donot, err), ""}
 	}
 	return nil
 }
@@ -57,13 +57,13 @@ func dropChainDefaults(dir, from string) error {
 	priv := "priv_validator.json"
 
 	if err := writeDefaultFile(chnDir, genJSON, DefChainGen); err != nil {
-		return errno.ErrorWritingFile(genJSON, err)
+		return &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorWritingFile, genJSON, err), ""}
 	}
 	if err := writeDefaultFile(chnDir, genCSV, DefChainCSV); err != nil {
-		return errno.ErrorWritingFile(genCSV, err)
+		return &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorWritingFile, genCSV, err), ""}
 	}
 	if err := writeDefaultFile(chnDir, priv, DefChainKeys); err != nil {
-		return errno.ErrorWritingFile(priv, err)
+		return &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorWritingFile, priv, err), ""}
 	}
 
 	//insert version into default chain service definition

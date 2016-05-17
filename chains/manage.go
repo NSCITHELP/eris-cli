@@ -306,7 +306,7 @@ func CatChain(do *definitions.Do) error {
 		config.GlobalConfig.Writer.Write(cat)
 		return nil
 	default:
-		return errno.ErrorUnknownCatCmd(fmt.Sprintf("%q", do.Type))
+		return &errno.ErisError{404, errno.BaseErrorES(errno.ErrorUnknownCatCmd, fmt.Sprintf("%q", do.Type)), ""}
 	}
 	do.Operations.PublishAllPorts = true
 	log.WithField("args", do.Operations.Args).Debug("Executing command")
@@ -408,7 +408,7 @@ func RenameChain(do *definitions.Do) error {
 		chainDef.Service.Image = ""
 		err = WriteChainDefinitionFile(chainDef, newFile)
 		if err != nil {
-			return errno.ErrorWriteChainFile(err)
+			return &errno.ErisError{404, errno.BaseError(errno.ErrorWriteChainFile, err), ""}
 		}
 
 		if !transformOnly {

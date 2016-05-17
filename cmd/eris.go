@@ -84,7 +84,7 @@ Complete documentation is available at https://docs.erisindustries.com
 		// Compare Docker client API versions.
 		dockerVersion, err := util.DockerClientVersion()
 		if err != nil {
-			IfExit(errno.ErrorConnectDockerDaemon(util.DockerError(err)))
+			IfExit(&errno.ErisError{404, errno.BaseError(errno.ErrorConnectDockerDaemon, util.DockerError(err)), ""})
 		}
 		if !util.CompareVersions(dockerVersion, dVerMin) {
 			IfExit(errno.ErrorBadWhaleVersions("docker", dVerMin, dockerVersion))

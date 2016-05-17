@@ -66,7 +66,7 @@ func cleanHandler(toClean map[string]bool) error {
 func RemoveAllErisContainers() error {
 	contns, err := DockerClient.ListContainers(docker.ListContainersOptions{All: true})
 	if err != nil {
-		return errno.ErrorListingContainers(DockerError(err))
+		return &errno.ErisError{404, errno.BaseError(errno.ErrorListingContainers, DockerError(err)), "problem with docker client?"}
 	}
 
 	for _, container := range contns {
@@ -76,7 +76,7 @@ func RemoveAllErisContainers() error {
 			strings.HasPrefix(strings.TrimLeft(container.Names[0], "/"), "eris_") {
 
 			if err := removeContainer(container.ID); err != nil {
-				return errno.ErrorRemovingContainer(err)
+				return &errno.ErisError{404, errno.BaseError(errno.ErrorRemovingContainer, DockerError(err)), "problem with docker client?"}
 			}
 		}
 

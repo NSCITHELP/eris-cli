@@ -132,7 +132,7 @@ Do you wish to continue?`, trimEris)
 			if util.QueryYesOrNo(goWarn) == util.Yes {
 				return "go", erisLook, nil
 			} else {
-				return "", "", errno.ErrorPermissionNotGiven("update")
+				return "", "", &errno.ErisError{404, errno.BaseErrorES(errno.ErrorPermissionNotGiven, "update"), ""}
 			}
 		} else { // eris is installed via binary
 			binWarn := fmt.Sprintf(`The marmots have detected a binary installation located at: (%s)
@@ -141,7 +141,7 @@ Do you wish to continue?`, trimEris)
 			if util.QueryYesOrNo(binWarn) == util.Yes {
 				return "binary", erisLook, nil
 			} else {
-				return "", "", errno.ErrorPermissionNotGiven("update")
+				return "", "", &errno.ErisError{404, errno.BaseErrorES(errno.ErrorPermissionNotGiven, "update"), ""}
 			}
 		}
 	}

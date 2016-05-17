@@ -37,93 +37,80 @@ func ErrorContainerExit(id string, code int) error {
 	return fmt.Errorf("Container %s exited with status %d", id, code)
 
 }
-
-func ErrorPermissionNotGiven(thing string) error {
-	return fmt.Errorf("Permission to %s denied. Exiting.", thing)
-}
-
-func ErrorPathIsNotDirectory(path string) error {
-	return fmt.Errorf("path (%s) is not a directory; please provide a path to a directory", path)
-}
-
-func ErrorPathDoesNotExist(path string) error {
-	return fmt.Errorf("path (%s) does not exist; please rerun command with a proper path", path)
-
-}
-
-func ErrorRunningCommand(cmd string, err error) error {
-	return fmt.Errorf("error running command (%s): %v", cmd, err)
-}
+var (
+	ErrorCreatingDataCont = "error creating data container:%v\n"
+	ErrorPermissionNotGiven = "Permission to %s denied. Exiting."
+	ErrorPathIsNotDirectory = "path (%s) is not a directory; please provide a path to a directory"
+	ErrorPathDoesNotExist = "path (%s) does not exist; please rerun command with a proper path"
+	ErrorBadConfigOptions = "Config options should be <key>=<value> pairs. Got %s"
+	ErrorUnknownCatCmd = "unknown cat subcommand: %s"
+)
+	
+var (
+	ErrorRunningCommand = "error running command (%s): %v"
+	ErrorMakingDirectory = "The marmots could neither find, nor had access to make the directory: (%s)\nerror: %v\n"
+	ErrorBadTemplate = "%stemplate error: %v\n"
+	ErrorWritingFile = "Cannot add default %s: %v\n"
+)
 
 func ErrorRunningArguments(args []string, err error) error {
 	return fmt.Errorf("error running args: %v\n%v\n", args, err)
 }
 
-func ErrorMakingDirectory(path string, err error) error {
-	return fmt.Errorf("The marmots could neither find, nor had access to make the directory: (%s)\nerror: %v\n", path, err)
-
-}
-
-func ErrorBadConfigOptions(thing string) error {
-	return fmt.Errorf("Config options should be <key>=<value> pairs. Got %s", thing)
-}
-
-func ErrorCreatingDataCont(err error) error {
-	return fmt.Errorf("error creating data container:%v\n", err)
-}
-
 func ErrorRemovingDataCont(err1, err2 error) error {
 	return fmt.Errorf("error removing data container after executing (%v): %v\n", err1, err2)
-
 }
 
-func ErrorUnknownCatCmd(thing string) error {
-	return fmt.Errorf("unknown cat subcommand: %s", thing)
+var (
+ErrorMigratingDirs = "error migrating directories: %v\n"
+ErrorInitErisRoot ="error initializing the Eris root directory: %v\n"
+ErrorInitDefaults = "error instantiating default files: %v\n"
+ErrorDropDefaults = "error dropping default files:%v\ntoadserver may be down: re-run [eris init] with [--source=rawgit]"
+)
+
+type ErisError struct {
+	Code int
+	ErrMsg error
+	FixMsg string
 }
 
-// -------- list --------------
-func ErrorBadTemplate(kind string, err error) error {
-	return fmt.Errorf("%stemplate error: %v\n", kind, err)
+// Take a string error defined in this file & concates with thrown error
+// TODO make BaseErrorEE
+func BaseError(errMsg string, thrownError error) error {
+	return fmt.Errorf(errMsg, thrownError)
 }
 
-// -------- init ---------------
-
-func ErrorMigratingDirs(err error) error {
-	return fmt.Errorf("error migrating directories: %v\n", err)
-
+// takes two strings & returns an error
+func BaseErrorES(errMsg, thing string) error {
+	return fmt.Errorf(errMsg, thing)
 }
 
-func ErrorInitErisRoot(err error) error {
-	return fmt.Errorf("error initializing the Eris root directory: %v\n", err)
+// takes an erro and two strings & returns an error
+func BaseErrorESE(errMsg, thing string, err error) error {
+	return errors.New(fmt.Sprintf(errMsg, thing, err))
 }
 
-func ErrorInitDefaults(err error) error {
-	return fmt.Errorf("error instantiating default files: %v\n", err)
-}
-
-func ErrorDropDefaults(err error) error {
-	return fmt.Errorf("error dropping default files:%v\ntoadserver may be down: re-run [eris init] with [--source=rawgit]", err)
-}
-
-func ErrorWritingFile(file string, err error) error {
-	return fmt.Errorf("Cannot add default %s: %v\n", file, err)
-
+func (e *ErisError) Error() string {
+	return fmt.Sprintf("error code %d/nerror: %v/Try fixing it with: %s/n", e.Code, e.ErrMsg, e.FixMsg)
 }
 
 // -------- files --------------
-func BadGatewayURL(err error) error {
-	return fmt.Errorf("Invalid gateway URL provided %v\n", err)
-}
-
-func ErrorEnsureRunningIPFS(err error) error {
-	return fmt.Errorf("Failed to ensure IPFS is running: %v", err)
-}
-
-var ErrorNoFileToExport = errors.New("error: no file to export")
-
-var WarnAllOrNothing = errors.New("Either remove a file by hash or all of them.")
+var (
+BadGatewayURL = "Invalid gateway URL provided %v\n"
+ErrorEnsureRunningIPFS = "Failed to ensure IPFS is running: %v"
+ErrorNoFileToExport = errors.New("error: no file to export")
+WarnAllOrNothing = errors.New("Either remove a file by hash or all of them.")
+)
 
 // -------- chains -------------
+var (
+ErrorReadingGenesisFile = "error reading genesis file: %v\n"
+ErrorStartingChain = "error starting chain: %v\n"
+ErrorWriteChainFile = "error writing chain definition file: %v\n"
+ErrorReadingFromGenesisFile = "error reading %s genesis file: %v\n"
+ErrorExecChain = "error %s: %v\n"
+)
+
 func ErrorChainMissing(ch1, ch2 string) error {
 	return fmt.Errorf("chain %s depends on chain %s but %s is not running", ch1, ch2, ch2)
 }
@@ -133,41 +120,16 @@ func ErrorSettingUpChain(err error) string {
 	return fmt.Sprintf("error setting up chain: %v\nCleaning up...", err)
 }
 
-func ErrorStartingChain(err error) error {
-	return fmt.Errorf("error starting chain: %v\n", err)
-}
-
 func ErrorCleaningUpChain(contName string, err1, err2 error) error {
 	return fmt.Errorf("Tragic! Our marmots encountered an error during setupChain for %s.\nThey also failed to cleanup after themselves (remove containers) due to another error.\nFirst error: %v\nCleanup error: %v\n", contName, err1, err2)
 
 }
 
-func ErrorReadingGenesisFile(err error) error {
-	return fmt.Errorf("error reading genesis file: %v\n", err)
-}
-
-func ErrorReadingFromGenesisFile(thing string, err error) error {
-	return fmt.Errorf("error reading %s genesis file: %v\n", err)
-}
-
-func ErrorExecChain(thing string, err error) error {
-	return fmt.Errorf("error %s: %v\n", err)
-}
-
-func ErrorWriteChainFile(err error) error {
-	return fmt.Errorf("error writing chain definition file: %v", err)
-}
-
 // -------- util ---------------
-
-func ErrorListingContainers(err error) error {
-	return fmt.Errorf("error listing containers: %v\n", err)
-}
-
-func ErrorRemovingContainer(err error) error {
-	return fmt.Errorf("Error removing container: %v", err)
-
-}
+var (
+ErrorListingContainers = "error listing containers: %v\n"
+ErrorRemovingContainer = "error removing container: %v\n"
+)
 
 func ErrorWrongLength(thing string, length int) error {
 	return fmt.Errorf("%s length !=%d", thing, length)
@@ -180,9 +142,7 @@ func ErrorBadCommandLength(typ, numStr string) error {
 
 // ---------------------
 
-func ErrorBadReport(err error) error {
-	return fmt.Errorf("The marmots had an error trying to print a nice report: %v\n", err)
-}
+var ErrorBadReport = "The marmots had an error trying to print a nice report: %v\n"
 
 func ErrorNoDirectories(path1, path2 string) error {
 	return fmt.Errorf("neither deprecated (%s) or new (%s) exists. please run `init` prior to `update`\n", path1, path2)
@@ -191,29 +151,12 @@ func ErrorNoDirectories(path1, path2 string) error {
 var (
 	ParseIPFShost = "parse the URL"
 	SplitHP       = "split the host and port"
+	ErrorConnectDockerTLS = "Failed to connect to Docker Backend via TLS.\nerror:%v\n"
+	ErrorStartingDockerMachine = "There was an error starting the newly created docker-machine.\nerror:%v\n"
+	ErrorDockerWindows = "Could not add ssh.exe to PATH.\nerror:%v\n"
+	ErrorConnectDockerMachine = "Could not evaluate the env vars for the %s docker-machine.\nerror:%v\n"
+	ErrorParseIPFS = "The marmots could not %s for the DockerHost to populate the IPFS Host.\nPlease check that your docker-machine VM is running with [docker-machine ls]\nerror: %v\n"
 )
-
-func ErrorConnectDockerTLS(err error) error {
-	return fmt.Errorf("Failed to connect to Docker Backend via TLS.\nerror:%v\n", err)
-}
-
-func ErrorConnectDockerMachine(machName string, err error) error {
-	return fmt.Errorf("Could not evaluate the env vars for the %s docker-machine.\nerror:%v\n", machName, err)
-}
-
-func ErrorStartingDockerMachine(err error) error {
-	return fmt.Errorf("There was an error starting the newly created docker-machine.\nerror:%v\n", err)
-
-}
-
-func ErrorDockerWindows(err error) error {
-	return fmt.Errorf("Could not add ssh.exe to PATH.\nerror:%v\n", err)
-}
-
-func ErrorParseIPFS(thing string, err error) error {
-	return fmt.Errorf("The marmots could not %s for the DockerHost to populate the IPFS Host.\nPlease check that your docker-machine VM is running with [docker-machine ls]\nerror: %v\n", thing, err)
-
-}
 
 func ErrorCheckKeysAndCerts(thing, file string, err error) error {
 	return fmt.Errorf("The marmots could not find a file that was required to connect to Docker. %s\n%s\nFile needed: %s\nerror:", thing, file, err)
@@ -235,9 +178,7 @@ func MustInstallDockerError() error {
 	return fmt.Errorf("%s%s\n", errBase, dInst)
 }
 
-func ErrorConnectDockerDaemon(err error) error {
-	return fmt.Errorf("There was an error connecting to your Docker daemon.\nCome back after you have resolved the issue and the marmots will be happy to service your blockchain management needs: %v", err)
-}
+var ErrorConnectDockerDaemon = "There was an error connecting to your Docker daemon.\nCome back after you have resolved the issue and the marmots will be happy to service your blockchain management needs: %v"
 
 func ErrorBadWhaleVersions(thing, verMin, verDetected string) error {
 	return fmt.Errorf("Eris requires %s version >= %s\nThe marmots have detected docker version: %s\nCome back after you have upgraded and the marmots will be happy to service your blockchain management needs", thing, verMin, verDetected)

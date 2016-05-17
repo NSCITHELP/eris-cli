@@ -91,13 +91,13 @@ func customKnown(definitions []Definition, format string) error {
 	r := strings.NewReplacer(`\t`, "\t", `\n`, "\n")
 	tmpl, err := template.New("known").Parse(r.Replace(format))
 	if err != nil {
-		return errno.ErrorBadTemplate("", err)
+		return &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorBadTemplate, "", err), ""}
 	}
 
 	buf := new(bytes.Buffer)
 	for _, definition := range definitions {
 		if err := tmpl.Execute(buf, definition); err != nil {
-			return errno.ErrorBadTemplate("", err)
+			return &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorBadTemplate, "", err), ""}
 		}
 		buf.WriteString("\n")
 	}

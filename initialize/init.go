@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/eris-ltd/eris-cli/definitions"
-	"github.com/eris-ltd/eris-cli/errno"
+	ee "github.com/eris-ltd/eris-cli/errno"
 	"github.com/eris-ltd/eris-cli/util"
 
 	log "github.com/Sirupsen/logrus"
@@ -39,7 +39,7 @@ func Initialize(do *definitions.Do) error {
 	//drops: services, actions, & chain defaults from toadserver
 	log.Warn("Initializing default service, action, and chain files")
 	if err := InitDefaults(do, newDir); err != nil {
-		return errno.ErrorInitDefaults(err)
+		return &ee.ErisError{404, ee.BaseError(ee.ErrorInitDefaults, err), "try again"}
 	}
 
 	if !do.Quiet {
@@ -98,15 +98,15 @@ func InitDefaults(do *definitions.Do, newDir bool) error {
 	chnPath = common.ChainsPath
 
 	if err := dropServiceDefaults(srvPath, do.Source); err != nil {
-		return errno.ErrorDropDefaults(err)
+		return &ee.ErisError{404, ee.BaseError(ee.ErrorDropDefaults, err), "try again"}
 	}
 
 	if err := dropActionDefaults(actPath, do.Source); err != nil {
-		return errno.ErrorDropDefaults(err)
+		return &ee.ErisError{404, ee.BaseError(ee.ErrorDropDefaults, err), "try again"}
 	}
 
 	if err := dropChainDefaults(chnPath, do.Source); err != nil {
-		return errno.ErrorDropDefaults(err)
+		return &ee.ErisError{404, ee.BaseError(ee.ErrorDropDefaults, err), "try again"}
 	}
 
 	log.WithField("root", common.ErisRoot).Warn("Initialized Eris root directory")
@@ -119,14 +119,14 @@ func checkThenInitErisRoot(force bool) (bool, error) {
 	if force { //for testing only
 		log.Info("Force initializing Eris root directory")
 		if err := common.InitErisDir(); err != nil {
-			return true, errno.ErrorInitErisRoot(err)
+			return true, &ee.ErisError{404, ee.BaseError(ee.ErrorInitErisRoot, err), "try again"}
 		}
 		return true, nil
 	}
 	if !util.DoesDirExist(common.ErisRoot) {
 		log.Warn("Eris root directory doesn't exist. The marmots will initialize it for you")
 		if err := common.InitErisDir(); err != nil {
-			return true, errno.ErrorInitErisRoot(err)
+			return true, &ee.ErisError{404, ee.BaseError(ee.ErrorInitErisRoot, err), "try again"}
 		}
 		newDir = true
 	} else { // ErisRoot exists, prompt for overwrite
@@ -137,7 +137,7 @@ func checkThenInitErisRoot(force bool) (bool, error) {
 
 func checkIfMigrationRequired(doYes bool) error {
 	if err := util.MigrateDeprecatedDirs(common.DirsToMigrate, !doYes); err != nil {
-		return errno.ErrorMigratingDirs(err)
+		return &ee.ErisError{404, ee.BaseError(ee.ErrorMigratingDirs, err), "try again"}
 	}
 	return nil
 }
@@ -158,7 +158,8 @@ func checkIfCanOverwrite(doYes bool) error {
 	} else {
 		log.Warn("The marmots will not proceed without your permission")
 		log.Warn("Please backup your files and try again")
-		return errno.ErrorNoPermGiven
+		//return &ee.ErisError{404, ee.BaseError(ee.ErrorNoPermGiven, err), "try again"}
+		return ee.ErrorNoPermGiven
 	}
 	return nil
 }

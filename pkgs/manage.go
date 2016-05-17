@@ -33,7 +33,7 @@ func ExportPackage(do *definitions.Do) error {
 		return err
 	}
 	if !f.IsDir() {
-		return errno.ErrorPathIsNotDirectory(do.Name)
+		return &errno.ErisError{404, errno.BaseErrorES(errno.ErrorPathIsNotDirectory, do.Name), ""}
 	}
 
 	doPut := definitions.NowDo()

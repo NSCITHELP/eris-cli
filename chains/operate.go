@@ -250,7 +250,7 @@ func setupChain(do *definitions.Do, cmd string) (err error) {
 	} else {
 		ops := loaders.LoadDataDefinition(do.Name)
 		if err := perform.DockerCreateData(ops); err != nil {
-			return errno.ErrorCreatingDataCont(err)
+			return &errno.ErisError{404, errno.BaseError(errno.ErrorCreatingDataCont, err), ""}
 		}
 		ops.Args = []string{"mkdir", "--parents", path.Join(ErisContainerRoot, "chains", do.ChainID)}
 		if _, err := perform.DockerExecData(ops, nil); err != nil {
@@ -321,7 +321,7 @@ func setupChain(do *definitions.Do, cmd string) (err error) {
 	fileName := filepath.Join(ChainsPath, do.Name) + ".toml"
 	if _, err = os.Stat(fileName); err != nil {
 		if err = WriteChainDefinitionFile(chain, fileName); err != nil {
-			return errno.ErrorWriteChainFile(err)
+			return &errno.ErisError{404, errno.BaseError(errno.ErrorWriteChainFile, err), ""}
 		}
 	}
 
@@ -341,7 +341,7 @@ func setupChain(do *definitions.Do, cmd string) (err error) {
 	for _, cv := range do.ConfigOpts {
 		spl := strings.Split(cv, "=")
 		if len(spl) != 2 {
-			return errno.ErrorBadConfigOptions(cv)
+			return &errno.ErisError{404, errno.BaseErrorES(errno.ErrorBadConfigOptions, cv), ""}
 		}
 		buf.WriteString(fmt.Sprintf(" --%s=%s", spl[0], spl[1]))
 	}
@@ -390,7 +390,7 @@ func setupChain(do *definitions.Do, cmd string) (err error) {
 	doKeys.Operations.Args = []string{"mintkey", "eris", fmt.Sprintf("%s/chains/%s/priv_validator.json", ErisContainerRoot, do.Name)}
 	if out, err := ExecChain(doKeys); err != nil {
 		log.Error(out)
-		return errno.ErrorExecChain("moving keys", err)
+		return &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorExecChain, "moving keys", err), ""}
 	}
 
 	doChown := definitions.NowDo()
@@ -398,7 +398,7 @@ func setupChain(do *definitions.Do, cmd string) (err error) {
 	doChown.Operations.Args = []string{"chown", "--recursive", "eris", ErisContainerRoot}
 	if out2, err2 := ExecChain(doChown); err != nil {
 		log.Error(out2)
-		return errno.ErrorExecChain("changing owner", err2)
+		return &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorExecChain, "chainging owner", err2), ""}
 	}
 
 	return
@@ -424,11 +424,11 @@ func getChainIDFromGenesis(genesis, name string) (string, error) {
 
 	b, err := ioutil.ReadFile(genesis)
 	if err != nil {
-		return "", errno.ErrorReadingGenesisFile(err)
+		return "", &errno.ErisError{404, errno.BaseError(errno.ErrorReadingGenesisFile, err), "make a better genesis file!"}
 	}
 
 	if err = json.Unmarshal(b, &hasChainID); err != nil {
-		return "", errno.ErrorReadingFromGenesisFile("chain id", err)
+		return "", &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorReadingFromGenesisFile, "chain id", err), "make a better genesis file!"}
 	}
 
 	chainID := hasChainID.ChainID

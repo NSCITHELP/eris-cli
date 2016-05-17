@@ -77,7 +77,7 @@ func MakeGenesisFile(do *def.Do) error {
 
 	log.WithField("=>", doThr.Name).Info("Making genesis.json file. Starting chain")
 	if er := NewChain(doThr); er != nil {
-		return errno.ErrorStartingChain(er)
+		return &errno.ErisError{404, errno.BaseError(errno.ErrorStartingChain, er), "dunno"}
 	}
 
 	doThr.Operations.Args = []string{"mintgen", "known", do.Chain.Name, fmt.Sprintf("--pub=%s", do.Pubkey)}

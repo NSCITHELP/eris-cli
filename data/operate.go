@@ -94,7 +94,7 @@ func ImportData(do *definitions.Do) error {
 		log.WithField("name", do.Name).Info("Data container does not exist, creating it")
 		ops := loaders.LoadDataDefinition(do.Name)
 		if err := perform.DockerCreateData(ops); err != nil {
-			return errno.ErrorCreatingDataCont(err)
+			return &errno.ErisError{404, errno.BaseError(errno.ErrorCreatingDataCont, err), ""}
 		}
 
 		return ImportData(do)
@@ -193,7 +193,7 @@ func ExportData(do *definitions.Do) error {
 		// the temp contents there
 		if _, err := os.Stat(do.Destination); os.IsNotExist(err) {
 			if e2 := os.MkdirAll(do.Destination, 0755); e2 != nil {
-				return errno.ErrorMakingDirectory(do.Destination, err)
+				return &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorMakingDirectory, do.Destination, err), ""}
 			}
 		}
 		if err := MoveOutOfDirAndRmDir(exportPath, do.Destination); err != nil {

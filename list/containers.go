@@ -208,17 +208,17 @@ func render(buf *bytes.Buffer, t string, truncate bool, header, format string) e
 	if header != "" {
 		tmplHeader, err := template.New("header").Funcs(helpers).Parse(r.Replace(header))
 		if err != nil {
-			return errno.ErrorBadTemplate("header ", err)
+			return &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorBadTemplate, "header", err), ""}
 		}
 		if err := tmplHeader.Execute(buf, t); err != nil {
-			return errno.ErrorBadTemplate("header ", err)
+			return &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorBadTemplate, "header", err), ""}
 		}
 		buf.WriteString("\n")
 	}
 
 	tmplTable, err := template.New("containers").Funcs(helpers).Parse(r.Replace(format))
 	if err != nil {
-		return errno.ErrorBadTemplate("listing ", err)
+		return &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorBadTemplate, "listing", err), ""}
 	}
 
 	for _, container := range erisContainers {
@@ -235,7 +235,7 @@ func render(buf *bytes.Buffer, t string, truncate bool, header, format string) e
 		}
 
 		if err := tmplTable.Execute(buf, container); err != nil {
-			return errno.ErrorBadTemplate("listing ", err)
+			return &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorBadTemplate, "listing", err), ""}
 		}
 
 		buf.WriteString("\n")

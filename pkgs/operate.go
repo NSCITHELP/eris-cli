@@ -443,7 +443,7 @@ func getDataContainerSorted(do *definitions.Do, inbound bool) error {
 			}
 		}
 	} else {
-		return errno.ErrorPathDoesNotExist(do.Path)
+		return &errno.ErisError{404, errno.BaseErrorES(errno.ErrorPathDoesNotExist, do.Path), ""}
 	}
 
 	// import contracts path (if exists)

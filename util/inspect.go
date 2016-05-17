@@ -28,7 +28,7 @@ func PrintInspectionReport(cont *docker.Container, field string) error {
 		for _, obj := range []interface{}{cont, cont.Config, cont.HostConfig, cont.NetworkSettings} {
 			t, err := reflections.Fields(obj)
 			if err != nil {
-				return errno.ErrorBadReport(err)
+				return &errno.ErisError{404, errno.BaseError(errno.ErrorBadReport, err), ""}
 			}
 			for _, f := range t {
 				printReport(obj, f)

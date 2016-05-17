@@ -12,7 +12,7 @@ import (
 	"github.com/eris-ltd/eris-cli/config"
 	"github.com/eris-ltd/eris-cli/data"
 	"github.com/eris-ltd/eris-cli/definitions"
-	"github.com/eris-ltd/eris-cli/errno"
+	ee "github.com/eris-ltd/eris-cli/errno"
 	"github.com/eris-ltd/eris-cli/services"
 	"github.com/eris-ltd/eris-cli/util"
 
@@ -218,7 +218,7 @@ func ManagePinned(do *definitions.Do) error {
 		return err
 	}
 	if do.Rm && do.Hash != "" {
-		return errno.WarnAllOrNothing
+		return &ee.ErisError{404, ee.BaseError("", ee.WarnAllOrNothing), ""}
 	}
 
 	if do.Rm {
@@ -385,7 +385,7 @@ func EnsureIPFSrunning() error {
 	doNow := definitions.NowDo()
 	doNow.Name = "ipfs"
 	if err := services.EnsureRunning(doNow); err != nil {
-		return errno.ErrorEnsureRunningIPFS(err)
+		return &ee.ErisError{404, ee.BaseError(ee.ErrorEnsureRunningIPFS, err), "pls start ipfs"}
 	}
 	log.Info("IPFS is running")
 	return nil
@@ -395,7 +395,7 @@ func checkGatewayFlag(do *definitions.Do) error {
 	if do.Gateway != "" {
 		_, err := url.Parse(do.Gateway)
 		if err != nil {
-			return errno.BadGatewayURL(err)
+			return &ee.ErisError{404, ee.BaseError(ee.BadGatewayURL, err), ""}
 		}
 		log.WithField("gateway", do.Gateway).Debug("Posting to")
 	} else {
