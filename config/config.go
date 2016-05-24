@@ -66,7 +66,7 @@ func LoadViperConfig(configPath, configName, typ string) (*viper.Viper, error) {
 	conf.SetConfigName(configName)
 	err := conf.ReadInConfig()
 	if err != nil {
-		return nil, ErrLoadViperConfig(typ, err)
+		return nil, BaseError(ErrLoadViperConfig, err)
 	}
 
 	return conf, nil

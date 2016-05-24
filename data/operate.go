@@ -8,6 +8,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/eris-ltd/eris-cli/definitions"
 	. "github.com/eris-ltd/eris-cli/errors"
@@ -110,7 +111,7 @@ func runData(name string, args []string) error {
 	doRun.Operations.Args = args
 	_, err := perform.DockerRunData(doRun.Operations, nil)
 	if err != nil {
-		return ErrRunningArguments(args, err)
+		return BaseErrorESE(ErrRunningArguments, strings.Join(args, ", "), err)
 	}
 	return nil
 }

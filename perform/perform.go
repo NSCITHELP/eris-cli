@@ -87,7 +87,7 @@ func DockerRunData(ops *def.Operation, service *def.Service) (result []byte, err
 		log.WithField("=>", opts.Name).Info("Removing data container")
 		if err2 := removeContainer(opts.Name, true, false); err2 != nil {
 			if os.Getenv("CIRCLE_BRANCH") == "" {
-				err = ErrRmDataContainer(err, err2)
+				err = BaseErrorEE(ErrRmDataContainer, err, err2)
 			}
 		}
 		log.WithField("=>", opts.Name).Info("Container removed")
@@ -145,7 +145,7 @@ func DockerExecData(ops *def.Operation, service *def.Service) (buf *bytes.Buffer
 		log.WithField("=>", opts.Name).Info("Removing data container")
 		if err2 := removeContainer(opts.Name, true, false); err2 != nil {
 			if os.Getenv("CIRCLE_BRANCH") == "" {
-				err = ErrRemovingDataCont(err, err2)
+				err = BaseErrorEE(ErrRmDataContainer, err, err2)
 			}
 		}
 		log.WithField("=>", opts.Name).Info("Data container removed")
@@ -891,7 +891,7 @@ func attachContainer(id string, terminal bool, attached chan struct{}) (docker.C
 func waitContainer(id string) error {
 	exitCode, err := util.DockerClient.WaitContainer(id)
 	if exitCode != 0 {
-		err1 := ErrContainerExit(id, exitCode)
+		err1 := BaseErrorEI(ErrContainerExit, id, exitCode)
 		if err != nil {
 			err = fmt.Errorf("%v\nerror: %v\n", err1, err)
 		} else {

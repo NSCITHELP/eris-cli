@@ -27,11 +27,11 @@ func LoadServiceDefinition(servName string, newCont bool) (*definitions.ServiceD
 	srv.Operations.Labels = util.Labels(servName, srv.Operations)
 	serviceConf, err := loadServiceDefinition(servName)
 	if err != nil {
-		return nil, &ErisError{404, BaseError("", ErrLoadingDefFile(def.TypeService)), "fix"}
+		return nil, &ErisError{404, ErrLoadingDefFile, "fix"}
 	}
 
 	if err = MarshalServiceDefinition(serviceConf, srv); err != nil {
-		return nil, &ErisError{404, BaseError("", ErrLoadingDefFile(def.TypeService)), "fix"}
+		return nil, &ErisError{404, ErrLoadingDefFile, "fix"}
 	}
 
 	if srv.Service == nil {

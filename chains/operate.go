@@ -205,7 +205,7 @@ func bootDependencies(chain *definitions.Chain, do *definitions.Do) error {
 				return err
 			}
 			if !util.IsChain(chn.Name, true) {
-				return ErrChainMissing(chn.Name, chainName)
+				return BaseErrorESS(ErrChainMissing, chn.Name, chainName)
 			}
 		}
 	}
@@ -262,10 +262,10 @@ func setupChain(do *definitions.Do, cmd string) (err error) {
 	// if something goes wrong, cleanup
 	defer func() {
 		if err != nil {
-			log.Info(ErrSettingUpChain)
+			log.Warn(ErrSettingUpChain)
 			if err2 := RemoveChain(do); err2 != nil {
 				// maybe be less dramatic
-				err = ErrCleaningUpChain(containerName, err, err2)
+				err = BaseErrorEE(ErrCleaningUpChain, err, err2)
 			}
 		}
 	}()

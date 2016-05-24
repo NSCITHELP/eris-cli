@@ -65,7 +65,7 @@ func Migrate(dirsToMigrate map[string]string) error {
 			"new": newDir,
 		}).Info("Migrating Directories")
 		if !DoesDirExist(depDir) && !DoesDirExist(newDir) {
-			return ErrNoDirectories(depDir, newDir)
+			return BaseErrorESS(ErrNoDirectories, depDir, newDir)
 		} else if DoesDirExist(depDir) && !DoesDirExist(newDir) { //never updated, just rename dirs
 			if err := os.Rename(depDir, newDir); err != nil {
 				return err

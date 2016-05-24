@@ -213,12 +213,12 @@ func ArgCheck(num int, comp string, cmd *cobra.Command, args []string) error {
 	case "eq":
 		if len(args) != num {
 			cmd.Help()
-			return ErrBadCommandLength("arguments", fmt.Sprintf("%d arguments only.", num))
+			return BaseErrorESS(ErrBadCommandLength, "arguments", fmt.Sprintf("%d arguments only.", num))
 		}
 	case "ge":
 		if len(args) < num {
 			cmd.Help()
-			return ErrBadCommandLength("arguments", fmt.Sprintf("at least %d argument(s).", num))
+			return BaseErrorESS(ErrBadCommandLength, "arguments", fmt.Sprintf("at least %d argument(s).", num))
 		}
 	}
 	return nil
@@ -230,12 +230,12 @@ func FlagCheck(num int, comp string, cmd *cobra.Command, flags []string) error {
 	case "eq":
 		if len(flags) != num {
 			cmd.Help()
-			return ErrBadCommandLength("flags", fmt.Sprintf("%d flags only.", num))
+			return BaseErrorESS(ErrBadCommandLength, "flags", fmt.Sprintf("%d flags only.", num))
 		}
 	case "ge":
 		if len(flags) < num {
 			cmd.Help()
-			return ErrBadCommandLength("flags", fmt.Sprintf("at least %d flag(s).", num))
+			return BaseErrorESS(ErrBadCommandLength,"flags", fmt.Sprintf("at least %d flag(s).", num))
 		}
 	}
 	return nil

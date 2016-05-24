@@ -223,7 +223,7 @@ func startsUp(field string) bool {
 // a checker for building tables cf. listing funcs
 func CheckParts(parts []string) error {
 	if len(parts) != 5 {
-		return ErrWrongLength("part", 5)
+		return BaseErrorEI(ErrWrongLength, "part", 5)
 	}
 	return nil
 }
