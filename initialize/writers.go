@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/eris-ltd/eris-cli/errno"
+	. "github.com/eris-ltd/eris-cli/errors"
 	"github.com/eris-ltd/eris-cli/util"
 	ver "github.com/eris-ltd/eris-cli/version"
 
@@ -37,7 +37,7 @@ func dropActionDefaults(dir, from string) error {
 	}
 	donot := "do_not_use.toml"
 	if err := writeDefaultFile(common.ActionsPath, donot, defAct); err != nil {
-		return &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorWritingFile, donot, err), ""}
+		return &ErisError{404, BaseErrorESE(ErrWritingFile, donot, err), ""}
 	}
 	return nil
 }
@@ -57,13 +57,13 @@ func dropChainDefaults(dir, from string) error {
 	priv := "priv_validator.json"
 
 	if err := writeDefaultFile(chnDir, genJSON, DefChainGen); err != nil {
-		return &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorWritingFile, genJSON, err), ""}
+		return &ErisError{404, BaseErrorESE(ErrWritingFile, genJSON, err), ""}
 	}
 	if err := writeDefaultFile(chnDir, genCSV, DefChainCSV); err != nil {
-		return &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorWritingFile, genCSV, err), ""}
+		return &ErisError{404, BaseErrorESE(ErrWritingFile, genCSV, err), ""}
 	}
 	if err := writeDefaultFile(chnDir, priv, DefChainKeys); err != nil {
-		return &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorWritingFile, priv, err), ""}
+		return &ErisError{404, BaseErrorESE(ErrWritingFile, priv, err), ""}
 	}
 
 	//insert version into default chain service definition

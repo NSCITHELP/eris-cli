@@ -1,7 +1,7 @@
 package loaders
 
 import (
-	"errors"
+	//"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -9,7 +9,7 @@ import (
 	"github.com/eris-ltd/eris-cli/config"
 	"github.com/eris-ltd/eris-cli/definitions"
 	def "github.com/eris-ltd/eris-cli/definitions"
-	"github.com/eris-ltd/eris-cli/errno"
+	. "github.com/eris-ltd/eris-cli/errors"
 	"github.com/eris-ltd/eris-cli/util"
 
 	log "github.com/Sirupsen/logrus"
@@ -27,19 +27,19 @@ func LoadServiceDefinition(servName string, newCont bool) (*definitions.ServiceD
 	srv.Operations.Labels = util.Labels(servName, srv.Operations)
 	serviceConf, err := loadServiceDefinition(servName)
 	if err != nil {
-		return nil, &errno.InvalidLoadingError{def.TypeService, err, "loadServiceDefinition"}
+		return nil, &ErisError{404, BaseError("", ErrLoadingDefFile(def.TypeService)), "fix"}
 	}
 
 	if err = MarshalServiceDefinition(serviceConf, srv); err != nil {
-		return nil, &errno.InvalidLoadingError{def.TypeService, err, "MarshalServiceDefintion"}
+		return nil, &ErisError{404, BaseError("", ErrLoadingDefFile(def.TypeService)), "fix"}
 	}
 
 	if srv.Service == nil {
-		return nil, &errno.InvalidLoadingError{def.TypeService, errors.New("no service given."), ""}
+		return nil, &ErisError{404, BaseError("", ErrNoServiceGiven), "fix"}
 	}
 
 	if err = checkImage(srv.Service); err != nil {
-		return nil, &errno.InvalidLoadingError{def.TypeService, err, "checkImage"}
+		return nil, &ErisError{404, err, "fix"}
 	}
 
 	// Docker 1.6 (which eris doesn't support) had different linking mechanism.
@@ -157,6 +157,7 @@ func loadServiceDefinition(servName string) (*viper.Viper, error) {
 // Services must be given an image. Flame out if they do not.
 func checkImage(srv *definitions.Service) error {
 	if srv.Image == "" {
+	// TODO error
 		return fmt.Errorf("An \"image\" field is required in the service definition file.")
 	}
 

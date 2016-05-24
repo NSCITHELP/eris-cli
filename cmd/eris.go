@@ -8,7 +8,7 @@ import (
 
 	"github.com/eris-ltd/eris-cli/config"
 	"github.com/eris-ltd/eris-cli/definitions"
-	"github.com/eris-ltd/eris-cli/errno"
+	. "github.com/eris-ltd/eris-cli/errors"
 	"github.com/eris-ltd/eris-cli/initialize"
 	"github.com/eris-ltd/eris-cli/util"
 	"github.com/eris-ltd/eris-cli/version"
@@ -84,10 +84,10 @@ Complete documentation is available at https://docs.erisindustries.com
 		// Compare Docker client API versions.
 		dockerVersion, err := util.DockerClientVersion()
 		if err != nil {
-			IfExit(&errno.ErisError{404, errno.BaseError(errno.ErrorConnectDockerDaemon, util.DockerError(err)), ""})
+			IfExit(&ErisError{404, BaseError(ErrConnectDockerDaemon, util.DockerError(err)), ""})
 		}
 		if !util.CompareVersions(dockerVersion, dVerMin) {
-			IfExit(errno.ErrorBadWhaleVersions("docker", dVerMin, dockerVersion))
+			IfExit(ErrBadWhaleVersions("docker", dVerMin, dockerVersion))
 		}
 		log.AddHook(CrashReportHook(dockerVersion))
 
@@ -96,7 +96,7 @@ Complete documentation is available at https://docs.erisindustries.com
 		if err != nil {
 			log.Info("The marmots could not find docker-machine installed. While it is not required to use the Eris platform, we strongly recommend it be installed for maximum blockchain awesomeness.")
 		} else if !util.CompareVersions(dmVersion, dmVerMin) {
-			IfExit(errno.ErrorBadWhaleVersions("docker-machine", dmVerMin, dmVersion))
+			IfExit(ErrBadWhaleVersions("docker-machine", dmVerMin, dmVersion))
 		}
 	},
 
@@ -213,12 +213,12 @@ func ArgCheck(num int, comp string, cmd *cobra.Command, args []string) error {
 	case "eq":
 		if len(args) != num {
 			cmd.Help()
-			return errno.ErrorBadCommandLength("arguments", fmt.Sprintf("%d arguments only.", num))
+			return ErrBadCommandLength("arguments", fmt.Sprintf("%d arguments only.", num))
 		}
 	case "ge":
 		if len(args) < num {
 			cmd.Help()
-			return errno.ErrorBadCommandLength("arguments", fmt.Sprintf("at least %d argument(s).", num))
+			return ErrBadCommandLength("arguments", fmt.Sprintf("at least %d argument(s).", num))
 		}
 	}
 	return nil
@@ -230,12 +230,12 @@ func FlagCheck(num int, comp string, cmd *cobra.Command, flags []string) error {
 	case "eq":
 		if len(flags) != num {
 			cmd.Help()
-			return errno.ErrorBadCommandLength("flags", fmt.Sprintf("%d flags only.", num))
+			return ErrBadCommandLength("flags", fmt.Sprintf("%d flags only.", num))
 		}
 	case "ge":
 		if len(flags) < num {
 			cmd.Help()
-			return errno.ErrorBadCommandLength("flags", fmt.Sprintf("at least %d flag(s).", num))
+			return ErrBadCommandLength("flags", fmt.Sprintf("at least %d flag(s).", num))
 		}
 	}
 	return nil

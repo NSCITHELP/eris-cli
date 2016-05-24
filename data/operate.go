@@ -10,7 +10,7 @@ import (
 	"regexp"
 
 	"github.com/eris-ltd/eris-cli/definitions"
-	"github.com/eris-ltd/eris-cli/errno"
+	. "github.com/eris-ltd/eris-cli/errors"
 	"github.com/eris-ltd/eris-cli/loaders"
 	"github.com/eris-ltd/eris-cli/perform"
 	"github.com/eris-ltd/eris-cli/util"
@@ -47,7 +47,7 @@ func ImportData(do *definitions.Do) error {
 		exists := perform.ContainerExists(srv.Operations.SrvContainerName)
 
 		if !exists {
-			return errno.ErrorCantFindData
+			return ErrCantFindData
 		}
 		if err := checkErisContainerRoot(do, "import"); err != nil {
 			return err
@@ -94,7 +94,7 @@ func ImportData(do *definitions.Do) error {
 		log.WithField("name", do.Name).Info("Data container does not exist, creating it")
 		ops := loaders.LoadDataDefinition(do.Name)
 		if err := perform.DockerCreateData(ops); err != nil {
-			return &errno.ErisError{404, errno.BaseError(errno.ErrorCreatingDataCont, err), ""}
+			return &ErisError{404, BaseError(ErrCreatingDataCont, err), ""}
 		}
 
 		return ImportData(do)
@@ -110,7 +110,7 @@ func runData(name string, args []string) error {
 	doRun.Operations.Args = args
 	_, err := perform.DockerRunData(doRun.Operations, nil)
 	if err != nil {
-		return errno.ErrorRunningArguments(args, err)
+		return ErrRunningArguments(args, err)
 	}
 	return nil
 }
@@ -126,7 +126,7 @@ func ExecData(do *definitions.Do) (buf *bytes.Buffer, err error) {
 			return nil, err
 		}
 	} else {
-		return nil, errno.ErrorCantFindData
+		return nil, ErrCantFindData
 	}
 	do.Result = "success"
 	return buf, nil
@@ -154,7 +154,7 @@ func ExportData(do *definitions.Do) error {
 		exists := perform.ContainerExists(srv.Operations.SrvContainerName)
 
 		if !exists {
-			return errno.ErrorCantFindData
+			return ErrCantFindData
 		}
 
 		reader, writer := io.Pipe()
@@ -193,14 +193,14 @@ func ExportData(do *definitions.Do) error {
 		// the temp contents there
 		if _, err := os.Stat(do.Destination); os.IsNotExist(err) {
 			if e2 := os.MkdirAll(do.Destination, 0755); e2 != nil {
-				return &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorMakingDirectory, do.Destination, err), ""}
+				return &ErisError{404, BaseErrorESE(ErrMakingDirectory, do.Destination, err), ""}
 			}
 		}
 		if err := MoveOutOfDirAndRmDir(exportPath, do.Destination); err != nil {
 			return err
 		}
 	} else {
-		return errno.ErrorCantFindData
+		return ErrCantFindData
 	}
 
 	do.Result = "success"

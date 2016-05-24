@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/eris-ltd/eris-cli/errno"
+	. "github.com/eris-ltd/eris-cli/errors"
 
 	"github.com/BurntSushi/toml"
 	dir "github.com/eris-ltd/common/go/common"
@@ -66,7 +66,7 @@ func LoadViperConfig(configPath, configName, typ string) (*viper.Viper, error) {
 	conf.SetConfigName(configName)
 	err := conf.ReadInConfig()
 	if err != nil {
-		return nil, errno.ErrorLoadViperConfig(typ, err)
+		return nil, ErrLoadViperConfig(typ, err)
 	}
 
 	return conf, nil
@@ -191,7 +191,7 @@ func GitConfigUser() (uName string, email string, err error) {
 	if err != nil {
 		email = ""
 	}
-
+	// TODO move to errors
 	if uName == "" && email == "" {
 		err = fmt.Errorf("Can not find username or email in git config. Using \"\" for both\n")
 	} else if uName == "" {

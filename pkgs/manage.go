@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/eris-ltd/eris-cli/definitions"
-	"github.com/eris-ltd/eris-cli/errno"
+	. "github.com/eris-ltd/eris-cli/errors"
 	"github.com/eris-ltd/eris-cli/files"
 
 	log "github.com/Sirupsen/logrus"
@@ -33,7 +33,7 @@ func ExportPackage(do *definitions.Do) error {
 		return err
 	}
 	if !f.IsDir() {
-		return &errno.ErisError{404, errno.BaseErrorES(errno.ErrorPathIsNotDirectory, do.Name), ""}
+		return &ErisError{404, BaseErrorES(ErrPathIsNotDirectory, do.Name), ""}
 	}
 
 	doPut := definitions.NowDo()

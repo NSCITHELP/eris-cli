@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/eris-ltd/eris-cli/errno"
+	"github.com/eris-ltd/eris-cli/errors"
 )
 
 type S struct {

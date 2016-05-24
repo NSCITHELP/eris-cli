@@ -9,7 +9,7 @@ import (
 
 	"github.com/eris-ltd/eris-cli/chains"
 	"github.com/eris-ltd/eris-cli/definitions"
-	"github.com/eris-ltd/eris-cli/errno"
+	. "github.com/eris-ltd/eris-cli/errors"
 	"github.com/eris-ltd/eris-cli/services"
 
 	log "github.com/Sirupsen/logrus"
@@ -106,7 +106,7 @@ func PerformCommand(action *definitions.Action, actionVars []string, quiet bool)
 
 		prev, err := cmd.Output()
 		if err != nil {
-			return &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorRunningCommand, string(prev), err), "bad action"}
+			return &ErisError{404, BaseErrorESE(ErrRunningCommand, string(prev), err), "bad action"}
 		}
 
 		if !quiet {

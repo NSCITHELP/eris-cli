@@ -7,7 +7,7 @@ import (
 
 	"github.com/eris-ltd/eris-cli/config"
 	"github.com/eris-ltd/eris-cli/definitions"
-	"github.com/eris-ltd/eris-cli/errno"
+	. "github.com/eris-ltd/eris-cli/errors"
 	"github.com/eris-ltd/eris-cli/util"
 	"github.com/eris-ltd/eris-cli/version"
 
@@ -34,19 +34,19 @@ func LoadChainDefinition(chainName string, newCont bool) (*definitions.Chain, er
 	chain.Operations.ContainerType = definitions.TypeChain
 	chain.Operations.Labels = util.Labels(chain.Name, chain.Operations)
 	if err := setChainDefaults(chain); err != nil {
-		return nil, &errno.InvalidLoadingError{definitions.TypeChain, err, "setChainDefaults"}
+		return nil, &ErisError{404, err, ""}
 	}
 
 	chainConf, err := config.LoadViperConfig(filepath.Join(ChainsPath), chainName, "chain")
 	if err != nil {
-		return nil, &errno.InvalidLoadingError{definitions.TypeChain, err, "config.LoadViperConfig"}
+		return nil, &ErisError{404, err, ""}
 	}
 
 	// marshal chain and always reset the operational requirements
 	// this will make sure to sync with docker so that if changes
 	// have occured in the interim they are caught.
 	if err = MarshalChainDefinition(chainConf, chain); err != nil {
-		return nil, &errno.InvalidLoadingError{definitions.TypeChain, err, "MarshalChainDefinition"}
+		return nil, &ErisError{404, err, ""}
 	}
 
 	// Docker 1.6 (which eris doesn't support) had different linking mechanism.

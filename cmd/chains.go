@@ -8,7 +8,7 @@ import (
 	chns "github.com/eris-ltd/eris-cli/chains"
 	"github.com/eris-ltd/eris-cli/config"
 	def "github.com/eris-ltd/eris-cli/definitions"
-	"github.com/eris-ltd/eris-cli/errno"
+	. "github.com/eris-ltd/eris-cli/errors"
 	"github.com/eris-ltd/eris-cli/list"
 
 	. "github.com/eris-ltd/common/go/common"
@@ -454,7 +454,7 @@ func ExecChain(cmd *cobra.Command, args []string) {
 	args = args[1:]
 	if !do.Operations.Interactive {
 		if len(args) == 0 {
-			Exit(errno.ErrorNonInteractiveExec)
+			Exit(ErrNonInteractiveExec)
 		}
 	}
 	if len(args) == 1 {
@@ -483,6 +483,7 @@ func KillChain(cmd *cobra.Command, args []string) {
 func MakeChain(cmd *cobra.Command, args []string) {
 	IfExit(ArgCheck(1, "ge", cmd, args))
 	do.Name = args[0]
+	// TODO errors
 	if do.Known && (do.ChainMakeActs == "" || do.ChainMakeVals == "") {
 		cmd.Help()
 		IfExit(fmt.Errorf("\nIf you are using the --known flag the --validators *and* the --accounts flags are both required."))

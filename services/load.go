@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/eris-ltd/eris-cli/definitions"
-	"github.com/eris-ltd/eris-cli/errno"
+	. "github.com/eris-ltd/eris-cli/errors"
 	"github.com/eris-ltd/eris-cli/loaders"
 	"github.com/eris-ltd/eris-cli/util"
 
@@ -24,7 +24,7 @@ func EnsureRunning(do *definitions.Do) error {
 	}
 
 	if !util.IsService(srv.Service.Name, true) {
-		return errors.New(errno.ErrorServiceNotRunning)
+		return errors.New(ErrServiceNotRunning)
 	} else {
 		log.WithField("=>", do.Name).Info("Service is running")
 	}

@@ -13,7 +13,7 @@ import (
 	"github.com/eris-ltd/eris-cli/config"
 	"github.com/eris-ltd/eris-cli/data"
 	"github.com/eris-ltd/eris-cli/definitions"
-	"github.com/eris-ltd/eris-cli/errno"
+	. "github.com/eris-ltd/eris-cli/errors"
 	"github.com/eris-ltd/eris-cli/loaders"
 	"github.com/eris-ltd/eris-cli/perform"
 	"github.com/eris-ltd/eris-cli/util"
@@ -107,7 +107,7 @@ func startChain(do *definitions.Do, exec bool) (buf *bytes.Buffer, err error) {
 
 	if chain.Name == "" {
 		do.Result = "no name"
-		return nil, errno.ErrorNoChainName
+		return nil, ErrNoChainName
 	}
 
 	// boot the dependencies (eg. keys, logrotate)
@@ -205,7 +205,7 @@ func bootDependencies(chain *definitions.Chain, do *definitions.Do) error {
 				return err
 			}
 			if !util.IsChain(chn.Name, true) {
-				return errno.ErrorChainMissing(chn.Name, chainName)
+				return ErrChainMissing(chn.Name, chainName)
 			}
 		}
 	}
@@ -217,7 +217,7 @@ func bootDependencies(chain *definitions.Chain, do *definitions.Do) error {
 func setupChain(do *definitions.Do, cmd string) (err error) {
 	// do.Name is mandatory
 	if do.Name == "" {
-		return errno.ErrorNoChainName
+		return ErrNoChainName
 	}
 
 	containerName := util.ChainContainerName(do.Name)
@@ -250,7 +250,7 @@ func setupChain(do *definitions.Do, cmd string) (err error) {
 	} else {
 		ops := loaders.LoadDataDefinition(do.Name)
 		if err := perform.DockerCreateData(ops); err != nil {
-			return &errno.ErisError{404, errno.BaseError(errno.ErrorCreatingDataCont, err), ""}
+			return &ErisError{404, BaseError(ErrCreatingDataCont, err), ""}
 		}
 		ops.Args = []string{"mkdir", "--parents", path.Join(ErisContainerRoot, "chains", do.ChainID)}
 		if _, err := perform.DockerExecData(ops, nil); err != nil {
@@ -262,10 +262,10 @@ func setupChain(do *definitions.Do, cmd string) (err error) {
 	// if something goes wrong, cleanup
 	defer func() {
 		if err != nil {
-			log.Info(errno.ErrorSettingUpChain)
+			log.Info(ErrSettingUpChain)
 			if err2 := RemoveChain(do); err2 != nil {
 				// maybe be less dramatic
-				err = errno.ErrorCleaningUpChain(containerName, err, err2)
+				err = ErrCleaningUpChain(containerName, err, err2)
 			}
 		}
 	}()
@@ -321,7 +321,7 @@ func setupChain(do *definitions.Do, cmd string) (err error) {
 	fileName := filepath.Join(ChainsPath, do.Name) + ".toml"
 	if _, err = os.Stat(fileName); err != nil {
 		if err = WriteChainDefinitionFile(chain, fileName); err != nil {
-			return &errno.ErisError{404, errno.BaseError(errno.ErrorWriteChainFile, err), ""}
+			return &ErisError{404, BaseError(ErrWritingDefinitionFile, err), ""}
 		}
 	}
 
@@ -341,7 +341,7 @@ func setupChain(do *definitions.Do, cmd string) (err error) {
 	for _, cv := range do.ConfigOpts {
 		spl := strings.Split(cv, "=")
 		if len(spl) != 2 {
-			return &errno.ErisError{404, errno.BaseErrorES(errno.ErrorBadConfigOptions, cv), ""}
+			return &ErisError{404, BaseErrorES(ErrBadConfigOptions, cv), ""}
 		}
 		buf.WriteString(fmt.Sprintf(" --%s=%s", spl[0], spl[1]))
 	}
@@ -390,7 +390,7 @@ func setupChain(do *definitions.Do, cmd string) (err error) {
 	doKeys.Operations.Args = []string{"mintkey", "eris", fmt.Sprintf("%s/chains/%s/priv_validator.json", ErisContainerRoot, do.Name)}
 	if out, err := ExecChain(doKeys); err != nil {
 		log.Error(out)
-		return &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorExecChain, "moving keys", err), ""}
+		return &ErisError{404, BaseErrorESE(ErrExecChain, "moving keys", err), ""}
 	}
 
 	doChown := definitions.NowDo()
@@ -398,7 +398,7 @@ func setupChain(do *definitions.Do, cmd string) (err error) {
 	doChown.Operations.Args = []string{"chown", "--recursive", "eris", ErisContainerRoot}
 	if out2, err2 := ExecChain(doChown); err != nil {
 		log.Error(out2)
-		return &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorExecChain, "chainging owner", err2), ""}
+		return &ErisError{404, BaseErrorESE(ErrExecChain, "chainging owner", err2), ""}
 	}
 
 	return
@@ -424,11 +424,11 @@ func getChainIDFromGenesis(genesis, name string) (string, error) {
 
 	b, err := ioutil.ReadFile(genesis)
 	if err != nil {
-		return "", &errno.ErisError{404, errno.BaseError(errno.ErrorReadingGenesisFile, err), "make a better genesis file!"}
+		return "", &ErisError{404, BaseError(ErrReadingGenesisFile, err), "make a better genesis file!"}
 	}
 
 	if err = json.Unmarshal(b, &hasChainID); err != nil {
-		return "", &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorReadingFromGenesisFile, "chain id", err), "make a better genesis file!"}
+		return "", &ErisError{404, BaseErrorESE(ErrReadingFromGenesisFile, "chain id", err), "make a better genesis file!"}
 	}
 
 	chainID := hasChainID.ChainID

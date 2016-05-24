@@ -13,7 +13,7 @@ import (
 	"github.com/eris-ltd/eris-cli/config"
 	"github.com/eris-ltd/eris-cli/data"
 	"github.com/eris-ltd/eris-cli/definitions"
-	"github.com/eris-ltd/eris-cli/errno"
+	. "github.com/eris-ltd/eris-cli/errors"
 	"github.com/eris-ltd/eris-cli/loaders"
 	"github.com/eris-ltd/eris-cli/perform"
 	"github.com/eris-ltd/eris-cli/services"
@@ -166,7 +166,7 @@ func ImportChain(do *definitions.Do) error {
 		return nil
 	}
 
-	return errno.ErrorNoFile
+	return ErrNoFile
 }
 
 // InspectChain is eris' version of docker inspect. It returns
@@ -235,7 +235,7 @@ func ExportChain(do *definitions.Do) error {
 		log.Warn(hash)
 
 	} else {
-		return errno.ErrorCantFindChain
+		return ErrCantFindChain
 	}
 	return nil
 }
@@ -306,7 +306,7 @@ func CatChain(do *definitions.Do) error {
 		config.GlobalConfig.Writer.Write(cat)
 		return nil
 	default:
-		return &errno.ErisError{404, errno.BaseErrorES(errno.ErrorUnknownCatCmd, fmt.Sprintf("%q", do.Type)), ""}
+		return &ErisError{404, BaseErrorES(ErrUnknownCatCmd, fmt.Sprintf("%q", do.Type)), ""}
 	}
 	do.Operations.PublishAllPorts = true
 	log.WithField("args", do.Operations.Args).Debug("Executing command")
@@ -356,7 +356,7 @@ func EditChain(do *definitions.Do) error {
 // XXX: What's going on here? => [csk]: magic
 func RenameChain(do *definitions.Do) error {
 	if do.Name == do.NewName {
-		return errno.ErrorRenaming
+		return ErrRenaming
 	}
 
 	newNameBase := strings.Replace(do.NewName, filepath.Ext(do.NewName), "", 1)
@@ -408,7 +408,7 @@ func RenameChain(do *definitions.Do) error {
 		chainDef.Service.Image = ""
 		err = WriteChainDefinitionFile(chainDef, newFile)
 		if err != nil {
-			return &errno.ErisError{404, errno.BaseError(errno.ErrorWriteChainFile, err), ""}
+			return &ErisError{404, BaseError(ErrWritingDefinitionFile, err), ""}
 		}
 
 		if !transformOnly {
@@ -424,7 +424,7 @@ func RenameChain(do *definitions.Do) error {
 
 		os.Remove(oldFile)
 	} else {
-		return errno.ErrorCantFindChain
+		return ErrCantFindChain
 	}
 	return nil
 }

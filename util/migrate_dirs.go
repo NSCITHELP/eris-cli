@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/eris-ltd/eris-cli/errno"
+	. "github.com/eris-ltd/eris-cli/errors"
 
 	log "github.com/Sirupsen/logrus"
 )
@@ -25,7 +25,7 @@ func MigrateDeprecatedDirs(dirsToMigrate map[string]string, prompt bool) error {
 		return Migrate(dirsMap)
 	}
 
-	return errno.ErrorNoPermGiven
+	return ErrNoPermGiven
 }
 
 //check that migration is actually needed
@@ -65,7 +65,7 @@ func Migrate(dirsToMigrate map[string]string) error {
 			"new": newDir,
 		}).Info("Migrating Directories")
 		if !DoesDirExist(depDir) && !DoesDirExist(newDir) {
-			return errno.ErrorNoDirectories(depDir, newDir)
+			return ErrNoDirectories(depDir, newDir)
 		} else if DoesDirExist(depDir) && !DoesDirExist(newDir) { //never updated, just rename dirs
 			if err := os.Rename(depDir, newDir); err != nil {
 				return err

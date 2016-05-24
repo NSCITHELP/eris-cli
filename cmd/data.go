@@ -7,7 +7,7 @@ import (
 	"github.com/eris-ltd/eris-cli/config"
 	"github.com/eris-ltd/eris-cli/data"
 	def "github.com/eris-ltd/eris-cli/definitions"
-	"github.com/eris-ltd/eris-cli/errno"
+	. "github.com/eris-ltd/eris-cli/errors"
 	"github.com/eris-ltd/eris-cli/list"
 
 	. "github.com/eris-ltd/common/go/common"
@@ -214,7 +214,7 @@ func ExecData(cmd *cobra.Command, args []string) {
 	// if interactive, we ignore args. if not, run args as command
 	if !do.Operations.Interactive {
 		if len(args) < 2 {
-			Exit(errno.ErrorNonInteractiveExec)
+			Exit(ErrNonInteractiveExec)
 		}
 		args = args[1:]
 		if len(args) == 1 {

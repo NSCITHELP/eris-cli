@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/eris-ltd/eris-cli/definitions"
-	"github.com/eris-ltd/eris-cli/errno"
+	. "github.com/eris-ltd/eris-cli/errors"
 	"github.com/eris-ltd/eris-cli/loaders"
 	"github.com/eris-ltd/eris-cli/perform"
 	"github.com/eris-ltd/eris-cli/util"
@@ -181,7 +181,7 @@ func StartGroup(group []*definitions.ServiceDefinition) error {
 	for _, srv := range group {
 		log.WithField("=>", srv.Name).Debug("Performing container start")
 		if err := perform.DockerRunService(srv.Service, srv.Operations); err != nil {
-			return &errno.ServiceError{"start", fmt.Errorf("%s: %v", srv.Name, err), "perform.DockerRunService"}
+			return &ErisError{404, BaseError(ErrStartingService, err), "some fix"}
 		}
 	}
 	return nil
@@ -221,7 +221,7 @@ func ConnectChainToService(chainFlag, chainNameAndOpts string, srv *definitions.
 		var err error
 		chainName, err = util.GetHead()
 		if chainName == "" || err != nil {
-			return nil, fmt.Errorf("%s %v", errno.ErrorNoChainSpecified, err)
+			return nil, fmt.Errorf("%s %v", ErrNoChainSpecified, err)
 		}
 	}
 	s, err := loaders.ChainsAsAService(chainName, false)

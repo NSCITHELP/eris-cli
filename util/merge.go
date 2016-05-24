@@ -3,7 +3,7 @@ package util
 import (
 	"reflect"
 
-	"github.com/eris-ltd/eris-cli/errno"
+	. "github.com/eris-ltd/eris-cli/errors"
 )
 
 // Merge merges maps and slices of base and over and overwrites other base fields.
@@ -12,26 +12,26 @@ import (
 // pointers to structs.
 func Merge(base, over interface{}) error {
 	if base == nil || over == nil {
-		return errno.ErrorMergeParameters
+		return ErrMergeParameters
 	}
 
 	// If not pointers, it won't be possible to store the result in base.
 	if reflect.ValueOf(base).Kind() != reflect.Ptr ||
 		reflect.ValueOf(over).Kind() != reflect.Ptr {
-		return errno.ErrorMergeParameters
+		return ErrMergeParameters
 	}
 
 	// Not structs.
 	if reflect.ValueOf(base).Elem().Kind() != reflect.Struct ||
 		reflect.ValueOf(over).Elem().Kind() != reflect.Struct {
-		return errno.ErrorMergeParameters
+		return ErrMergeParameters
 	}
 
 	// Structs, but varying number of fields.
 	baseFields := reflect.TypeOf(base).Elem().NumField()
 	overFields := reflect.TypeOf(over).Elem().NumField()
 	if baseFields != overFields {
-		return errno.ErrorMergeParameters
+		return ErrMergeParameters
 	}
 
 	for i := 0; i < baseFields; i++ {

@@ -10,7 +10,7 @@ import (
 	"github.com/eris-ltd/eris-cli/config"
 	"github.com/eris-ltd/eris-cli/data"
 	"github.com/eris-ltd/eris-cli/definitions"
-	"github.com/eris-ltd/eris-cli/errno"
+	. "github.com/eris-ltd/eris-cli/errors"
 	"github.com/eris-ltd/eris-cli/loaders"
 	"github.com/eris-ltd/eris-cli/perform"
 	"github.com/eris-ltd/eris-cli/util"
@@ -68,7 +68,7 @@ func NewService(do *definitions.Do) error {
 	}).Debug("Creating a new service definition file")
 	err = WriteServiceDefinitionFile(srv, filepath.Join(ServicesPath, do.Name+".toml"))
 	if err != nil {
-		return &errno.ServiceError{"new", err, "WriteServiceDefinitionFile"}
+		return &ErisError{404, BaseError(ErrWritingDefinitionFile, err), "fix"}
 	}
 	do.Result = "success"
 	return nil
@@ -88,7 +88,7 @@ func RenameService(do *definitions.Do) error {
 	}).Info("Renaming service")
 
 	if do.Name == do.NewName {
-		return errno.ErrorRenaming
+		return ErrRenaming
 	}
 
 	newNameBase := strings.Replace(do.NewName, filepath.Ext(do.NewName), "", 1)
@@ -147,7 +147,7 @@ func RenameService(do *definitions.Do) error {
 
 		os.Remove(oldFile)
 	} else {
-		return errno.ErrorCannotFindService
+		return ErrCannotFindService
 	}
 	do.Result = "success"
 	return nil
@@ -201,7 +201,7 @@ func ExportService(do *definitions.Do) error {
 		log.WithField("hash", hash).Warn()
 
 	} else {
-		return errno.ErrorCannotFindService
+		return ErrCannotFindService
 	}
 	return nil
 }
@@ -268,7 +268,7 @@ func CatService(do *definitions.Do) error {
 			return nil
 		}
 	}
-	return errno.ErrorCannotFindService
+	return ErrCannotFindService
 }
 
 func InspectServiceByService(srv *definitions.Service, ops *definitions.Operation, field string) error {

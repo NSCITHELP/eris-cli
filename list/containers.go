@@ -12,7 +12,7 @@ import (
 	"text/template"
 
 	def "github.com/eris-ltd/eris-cli/definitions"
-	"github.com/eris-ltd/eris-cli/errno"
+	.  "github.com/eris-ltd/eris-cli/errors"
 	"github.com/eris-ltd/eris-cli/util"
 
 	log "github.com/Sirupsen/logrus"
@@ -158,6 +158,7 @@ func Containers(t, format string, running bool) error {
 	}
 
 	if _, ok := renderParams[t]; !ok {
+		// TODO
 		return fmt.Errorf("Don't know the type %q to list containers for", t)
 	}
 
@@ -208,17 +209,17 @@ func render(buf *bytes.Buffer, t string, truncate bool, header, format string) e
 	if header != "" {
 		tmplHeader, err := template.New("header").Funcs(helpers).Parse(r.Replace(header))
 		if err != nil {
-			return &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorBadTemplate, "header", err), ""}
+			return &ErisError{404, BaseErrorESE(ErrBadTemplate, "header", err), ""}
 		}
 		if err := tmplHeader.Execute(buf, t); err != nil {
-			return &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorBadTemplate, "header", err), ""}
+			return &ErisError{404, BaseErrorESE(ErrBadTemplate, "header", err), ""}
 		}
 		buf.WriteString("\n")
 	}
 
 	tmplTable, err := template.New("containers").Funcs(helpers).Parse(r.Replace(format))
 	if err != nil {
-		return &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorBadTemplate, "listing", err), ""}
+		return &ErisError{404, BaseErrorESE(ErrBadTemplate, "listing", err), ""}
 	}
 
 	for _, container := range erisContainers {
@@ -235,7 +236,7 @@ func render(buf *bytes.Buffer, t string, truncate bool, header, format string) e
 		}
 
 		if err := tmplTable.Execute(buf, container); err != nil {
-			return &errno.ErisError{404, errno.BaseErrorESE(errno.ErrorBadTemplate, "listing", err), ""}
+			return &ErisError{404, BaseErrorESE(ErrBadTemplate, "listing", err), ""}
 		}
 
 		buf.WriteString("\n")

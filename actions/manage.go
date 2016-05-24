@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/eris-ltd/eris-cli/definitions"
-	ee "github.com/eris-ltd/eris-cli/errno"
+	. "github.com/eris-ltd/eris-cli/errors"
 	"github.com/eris-ltd/eris-cli/loaders"
 	"github.com/eris-ltd/eris-cli/perform"
 	"github.com/eris-ltd/eris-cli/util"
@@ -109,7 +109,7 @@ func EditAction(do *definitions.Do) error {
 
 func RenameAction(do *definitions.Do) error {
 	if do.Name == do.NewName {
-		return ee.ErrorRenaming
+		return ErrRenaming
 	}
 
 	do.Name = strings.Replace(do.Name, " ", "_", -1)
@@ -127,7 +127,7 @@ func RenameAction(do *definitions.Do) error {
 	log.WithField("file", do.Name).Debug("Finding action definition file")
 	oldFile := util.GetFileByNameAndType("actions", do.Name)
 	if oldFile == "" {
-		return ee.ErrorCantFindAction
+		return ErrCantFindAction
 	}
 	log.WithField("file", oldFile).Debug("Found action definition file")
 
@@ -183,7 +183,7 @@ func exportFile(actionName string) (string, error) {
 	var err error
 	fileName := util.GetFileByNameAndType("actions", actionName)
 	if fileName == "" {
-		return "", &ee.ErisError{404, ee.BaseError("", ee.ErrorNoFileToExport), ""}
+		return "", &ErisError{404, BaseError("", ErrNoFileToExport), ""}
 	}
 
 	var hash string

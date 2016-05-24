@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	def "github.com/eris-ltd/eris-cli/definitions"
-	"github.com/eris-ltd/eris-cli/errno"
+	. "github.com/eris-ltd/eris-cli/errors"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/eris-ltd/common/go/common"
@@ -66,7 +66,7 @@ func cleanHandler(toClean map[string]bool) error {
 func RemoveAllErisContainers() error {
 	contns, err := DockerClient.ListContainers(docker.ListContainersOptions{All: true})
 	if err != nil {
-		return &errno.ErisError{404, errno.BaseError(errno.ErrorListingContainers, DockerError(err)), "problem with docker client?"}
+		return &ErisError{404, BaseError(ErrListingContainers, DockerError(err)), "problem with docker client?"}
 	}
 
 	for _, container := range contns {
@@ -76,7 +76,7 @@ func RemoveAllErisContainers() error {
 			strings.HasPrefix(strings.TrimLeft(container.Names[0], "/"), "eris_") {
 
 			if err := removeContainer(container.ID); err != nil {
-				return &errno.ErisError{404, errno.BaseError(errno.ErrorRemovingContainer, DockerError(err)), "problem with docker client?"}
+				return &ErisError{404, BaseError(ErrRemovingContainer, DockerError(err)), "problem with docker client?"}
 			}
 		}
 

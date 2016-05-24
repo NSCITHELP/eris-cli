@@ -3,7 +3,7 @@ package util
 import (
 	"strings"
 
-	"github.com/eris-ltd/eris-cli/errno"
+	. "github.com/eris-ltd/eris-cli/errors"
 
 	. "github.com/eris-ltd/common/go/common"
 	"github.com/spf13/viper"
@@ -19,7 +19,7 @@ func Edit(conf *viper.Viper, configVals []string) error {
 		for _, v := range configVals {
 			spl := strings.Split(v, "=")
 			if len(spl) != 2 {
-				return &errno.ErisError{404, errno.BaseErrorES(errno.ErrorBadConfigOptions, v), ""}
+				return &ErisError{404, BaseErrorES(ErrBadConfigOptions, v), ""}
 			}
 			key, val := spl[0], spl[1]
 			spl = strings.Split(val, ",")

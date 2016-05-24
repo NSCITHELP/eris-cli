@@ -4,7 +4,7 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/eris-ltd/eris-cli/errno"
+	. "github.com/eris-ltd/eris-cli/errors"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/eris-ltd/common/go/common"
@@ -44,7 +44,7 @@ func GetHead() (string, error) {
 	head := fspl[0]
 
 	if head == "" {
-		return "", errno.ErrorNeedChainCheckedOut
+		return "", ErrNeedChainCheckedOut
 	}
 
 	return head, nil

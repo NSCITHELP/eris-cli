@@ -5,7 +5,7 @@ import (
 
 	"github.com/eris-ltd/eris-cli/config"
 	def "github.com/eris-ltd/eris-cli/definitions"
-	"github.com/eris-ltd/eris-cli/errno"
+	. "github.com/eris-ltd/eris-cli/errors"
 
 	log "github.com/Sirupsen/logrus"
 	docker "github.com/fsouza/go-dockerclient"
@@ -78,7 +78,7 @@ func Lookup(t, name string) (string, error) {
 		return lookup, nil
 	}
 
-	return "", errno.ErrorContainerNameNotFound
+	return "", ErrContainerNameNotFound
 }
 
 func initializeCache() {

@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/eris-ltd/eris-cli/definitions"
-	"github.com/eris-ltd/eris-cli/errno"
+	. "github.com/eris-ltd/eris-cli/errors"
 	"github.com/eris-ltd/eris-cli/loaders"
 	"github.com/eris-ltd/eris-cli/perform"
 	"github.com/eris-ltd/eris-cli/util"
@@ -29,7 +29,7 @@ func RenameData(do *definitions.Do) error {
 			return err
 		}
 	} else {
-		return errno.ErrorCantFindData
+		return ErrCantFindData
 	}
 	do.Result = "success"
 	return nil
@@ -47,7 +47,7 @@ func InspectData(do *definitions.Do) error {
 			return err
 		}
 	} else {
-		return errno.ErrorCantFindData
+		return ErrCantFindData
 	}
 	do.Result = "success"
 	return nil
@@ -67,12 +67,13 @@ func RmData(do *definitions.Do) (err error) {
 			srv.Operations.SrvContainerName = util.ContainerName("data", do.Name)
 
 			if err = perform.DockerRemove(srv.Service, srv.Operations, false, do.Volumes, false); err != nil {
+				// TODO error
 				log.Errorf("Error removing %s: %v", do.Name, err)
 				return err
 			}
 
 		} else {
-			err = errno.ErrorCantFindData
+			err = ErrCantFindData
 			log.Error(err)
 			return err
 		}
