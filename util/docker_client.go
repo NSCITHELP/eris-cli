@@ -359,25 +359,6 @@ func checkKeysAndCerts(dPath string) error {
 	return nil
 }
 
-func mustInstallError() error {
-	install := `The marmots cannot connect to Docker. Do you have Docker installed?
-If not, please visit here: https://docs.docker.com/installation/`
-
-	switch runtime.GOOS {
-	case "linux":
-		run := `Do you have Docker running? If not, please type [sudo service docker start].
-Also check that your user is in the "docker" group. If not, you can add it
-using the [sudo usermod -a -G docker $USER] command or rerun as [sudo eris]`
-
-		return fmt.Errorf("%slinux/\n\n%s", install, run)
-	case "darwin":
-		return fmt.Errorf("%smac/", install)
-	case "windows":
-		return fmt.Errorf("%swindows/", install)
-	}
-	return fmt.Errorf(install)
-}
-
 // need to add ssh.exe to PATH, it resides in GIT dir.
 // see: https://docs.docker.com/installation/windows/#from-your-shell
 func prepWin() error {
