@@ -26,7 +26,7 @@ func NewAction(do *definitions.Do) error {
 	}).Debug("Creating new action (mocking)")
 	act, _ := MockAction(do.Name)
 	if err := WriteActionDefinitionFile(act, path); err != nil {
-		return err
+		return &ErisError{404, err, "check filesystem permissions"}
 	}
 	return nil
 }
@@ -46,7 +46,7 @@ func ImportAction(do *definitions.Do) error {
 		var err error
 		ipfsService, err := loaders.LoadServiceDefinition("ipfs", false)
 		if err != nil {
-			return err
+			return &ErisError{404, err, ""}
 		}
 
 		ipfsService.Operations.ContainerType = definitions.TypeService
@@ -62,7 +62,7 @@ func ImportAction(do *definitions.Do) error {
 		}
 
 		if err != nil {
-			return err
+			return &ErisError{404, BaseError(ErrCantGetFromIPFS, err), FixGetFromIPFS}
 		}
 		return nil
 	}
@@ -79,21 +79,21 @@ func ImportAction(do *definitions.Do) error {
 func ExportAction(do *definitions.Do) error {
 	_, _, err := LoadActionDefinition(do.Name)
 	if err != nil {
-		return err
+		return &ErisError{404, err, ""}
 	}
 
 	ipfsService, err := loaders.LoadServiceDefinition("ipfs", false)
 	if err != nil {
-		return err
+		return &ErisError{404, err, ""}
 	}
 	err = perform.DockerRunService(ipfsService.Service, ipfsService.Operations)
 	if err != nil {
-		return err
+		return &ErisError{404, err, ""}
 	}
 
 	hash, err := exportFile(do.Name)
 	if err != nil {
-		return err
+		return &ErisError{404, err, ""}
 	}
 	do.Result = hash
 	log.Warn(hash)
@@ -109,7 +109,7 @@ func EditAction(do *definitions.Do) error {
 
 func RenameAction(do *definitions.Do) error {
 	if do.Name == do.NewName {
-		return ErrRenaming
+		return &ErisError{404, ErrRenaming, "use a different name"}
 	}
 
 	do.Name = strings.Replace(do.Name, " ", "_", -1)
@@ -120,14 +120,14 @@ func RenameAction(do *definitions.Do) error {
 			"from": do.Name,
 			"to":   do.NewName,
 		}).Debug("Failed renaming action")
-		return err
+		return &ErisError{404, err, ""}
 	}
 
 	do.Name = strings.Replace(do.Name, " ", "_", -1)
 	log.WithField("file", do.Name).Debug("Finding action definition file")
 	oldFile := util.GetFileByNameAndType("actions", do.Name)
 	if oldFile == "" {
-		return ErrCantFindAction
+		return &ErisError{404, ErrCantFindAction, ""}
 	}
 	log.WithField("file", oldFile).Debug("Found action definition file")
 
@@ -152,13 +152,16 @@ func RenameAction(do *definitions.Do) error {
 		"old": act.Name,
 		"new": newFile,
 	}).Debug("Writing new action definition file")
-	err = WriteActionDefinitionFile(act, newFile)
-	if err != nil {
-		return err
+
+	if err = WriteActionDefinitionFile(act, newFile); err != nil {
+		return &ErisError{404, err, ""}
 	}
 
 	log.WithField("file", oldFile).Debug("Removing old file")
-	os.Remove(oldFile)
+
+	if err = os.Remove(oldFile); err != nil {
+		return &ErisError{404, err, ""}
+	}
 
 	return nil
 }
@@ -172,7 +175,7 @@ func RmAction(do *definitions.Do) error {
 		}
 		log.WithField("file", oldFile).Debug("Removing file")
 		if err := os.Remove(oldFile); err != nil {
-			return err
+			return &ErisError{404, err, ""}
 		}
 	}
 	return nil
@@ -183,7 +186,7 @@ func exportFile(actionName string) (string, error) {
 	var err error
 	fileName := util.GetFileByNameAndType("actions", actionName)
 	if fileName == "" {
-		return "", &ErisError{404, BaseError("", ErrNoFileToExport), ""}
+		return "", ErrNoFileToExport
 	}
 
 	var hash string
@@ -194,6 +197,7 @@ func exportFile(actionName string) (string, error) {
 	}
 
 	if err != nil {
+		// TODO
 		return "", err
 	}
 

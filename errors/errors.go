@@ -105,6 +105,8 @@ var (
 
 	BadGatewayURL = "invalid gateway URL provided: %v"
 	ErrEnsureRunningIPFS = "failed to ensure IPFS is running: %v"
+	ErrCantGetFromIPFS = "cannot get from IPFS: %v"
+	FixGetFromIPFS = "ensure it is running and that you can connect to it"
 	ErrNoFileToExport = errors.New("cannot find file to export")
 	WarnAllOrNothing = errors.New("either remove a file by hash or all of them.")
 
@@ -112,6 +114,7 @@ var (
 	ErrStartingService = "cannot start service: %v"
 	ErrNoServiceGiven = errors.New("no service given")
 	ErrWritingDefinitionFile = "cannot write definition file: %v"
+	ErrNoImage = errors.New(`an "image" field is required in the service definition file.`)
 
 	ErrReadingGenesisFile = "cannot read genesis file: %v"
 	ErrStartingChain = "cannot start chain: %v"
@@ -134,7 +137,7 @@ var (
 	ErrRmDataContainer = "cannot remove data container after executing (%v): %v"
 
 	ErrLoadViperConfig = "cannot load viper config from that definition file. there may be an issue with the formatting of the .toml file: %v"
-	ErrLoadingDefFile = errors.New("cannot load definition file.")
+	ErrLoadingDefFile = "cannot load definition file: %v"
 	ErrContainerExit = "container %s exited with status %d"
 	ErrRunningArguments = "cannot run arguments (%s): %v"
 	ErrWrongLength = "%s length !=%d"
@@ -142,6 +145,7 @@ var (
 	ErrCleaningUpChain = "Tragic! Our marmots encountered an error during setupChain.\nThey also failed to cleanup after themselves (remove containers).\nFirst error: %v\nCleanup error: %v"
 	ErrBadCommandLength = "**Note** you sent our marmots the wrong number of %s.\nPlease send the marmots %s"
 	ErrNoDirectories = "neither deprecated (%s) or new (%s) exists." // "run [eris init] prior to [eris update]"
+	ErrGitConfigUser = errors.New(`cannot find either or username and e-mail in git config settings; using "" if empty`)
 
 )
 // ----------------------------------------------------------------

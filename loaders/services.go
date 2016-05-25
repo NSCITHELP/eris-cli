@@ -1,7 +1,6 @@
 package loaders
 
 import (
-	//"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -27,19 +26,19 @@ func LoadServiceDefinition(servName string, newCont bool) (*definitions.ServiceD
 	srv.Operations.Labels = util.Labels(servName, srv.Operations)
 	serviceConf, err := loadServiceDefinition(servName)
 	if err != nil {
-		return nil, &ErisError{404, ErrLoadingDefFile, "fix"}
+		return nil, BaseError(ErrLoadingDefFile, err)
 	}
 
 	if err = MarshalServiceDefinition(serviceConf, srv); err != nil {
-		return nil, &ErisError{404, ErrLoadingDefFile, "fix"}
+		return nil, BaseError(ErrLoadingDefFile, err)
 	}
 
 	if srv.Service == nil {
-		return nil, &ErisError{404, BaseError("", ErrNoServiceGiven), "fix"}
+		return nil, ErrNoServiceGiven
 	}
 
 	if err = checkImage(srv.Service); err != nil {
-		return nil, &ErisError{404, err, "fix"}
+		return nil, err
 	}
 
 	// Docker 1.6 (which eris doesn't support) had different linking mechanism.
@@ -157,10 +156,8 @@ func loadServiceDefinition(servName string) (*viper.Viper, error) {
 // Services must be given an image. Flame out if they do not.
 func checkImage(srv *definitions.Service) error {
 	if srv.Image == "" {
-	// TODO error
-		return fmt.Errorf("An \"image\" field is required in the service definition file.")
+		return ErrNoImage
 	}
-
 	return nil
 }
 

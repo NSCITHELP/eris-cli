@@ -176,6 +176,7 @@ func ChangeErisDir(erisDir string) {
 func marshallGlobalConfig(globalConfig *viper.Viper, config *ErisConfig) error {
 	err := globalConfig.Unmarshal(config)
 	if err != nil {
+	// TODO error?
 		return err
 	}
 
@@ -191,13 +192,8 @@ func GitConfigUser() (uName string, email string, err error) {
 	if err != nil {
 		email = ""
 	}
-	// TODO move to errors
-	if uName == "" && email == "" {
-		err = fmt.Errorf("Can not find username or email in git config. Using \"\" for both\n")
-	} else if uName == "" {
-		err = fmt.Errorf("Can not find username in git config. Using \"\"\n")
-	} else if email == "" {
-		err = fmt.Errorf("Can not find email in git config. Using \"\"\n")
+	if uName == "" || email == "" {
+		err = ErrGitConfigUser
 	}
 	return
 }

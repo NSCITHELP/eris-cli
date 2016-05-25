@@ -260,7 +260,7 @@ func importFile(hash, fileName string) error {
 		err = ipfs.GetFromIPFS(hash, fileName, "", bytes.NewBuffer([]byte{}))
 	}
 	if err != nil {
-		return err
+		return &ErisError{404, BaseError(ErrCantGetFromIPFS, err), FixGetFromIPFS}
 	}
 	return nil
 }

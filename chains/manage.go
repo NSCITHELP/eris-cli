@@ -156,7 +156,7 @@ func ImportChain(do *definitions.Do) error {
 		}
 
 		if err != nil {
-			return err
+			return &ErisError{404, BaseError(ErrCantGetFromIPFS, err), FixGetFromIPFS}
 		}
 		return nil
 	}

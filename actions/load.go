@@ -100,9 +100,8 @@ func readActionDefinition(actionName []string, dropped map[string]string, varNum
 
 // marshal from viper to definitions struct
 func marshalActionDefinition(actionConf *viper.Viper, action *def.Action) error {
-	err := actionConf.Unmarshal(action)
-	if err != nil {
-		return &ErisError{404, BaseError("", err), ""}
+	if err := actionConf.Unmarshal(action); err != nil {
+		return err // TODO custom error?
 	}
 	return nil
 }

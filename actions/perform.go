@@ -25,7 +25,7 @@ func Do(do *definitions.Do) error {
 	var actionVars []string
 	do.Action, actionVars, err = LoadActionDefinition(strings.Join(do.Operations.Args, "_"))
 	if err != nil {
-		return err
+		return &ErisError{404, err, ""}
 	}
 
 	resolveServices(do)
@@ -33,11 +33,11 @@ func Do(do *definitions.Do) error {
 	fixChain(do.Action, do.ChainName)
 
 	if err := StartServicesAndChains(do); err != nil {
-		return err
+		return &ErisError{404, err, ""}
 	}
 
 	if err := PerformCommand(do.Action, actionVars, do.Quiet); err != nil {
-		return err
+		return &ErisError{404, err, ""}
 	}
 
 	return nil
@@ -106,7 +106,7 @@ func PerformCommand(action *definitions.Action, actionVars []string, quiet bool)
 
 		prev, err := cmd.Output()
 		if err != nil {
-			return &ErisError{404, BaseErrorESE(ErrRunningCommand, string(prev), err), "bad action"}
+			return BaseErrorESE(ErrRunningCommand, string(prev), err)
 		}
 
 		if !quiet {

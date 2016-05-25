@@ -35,7 +35,7 @@ func ImportService(do *definitions.Do) error {
 	}
 
 	if err != nil {
-		return err
+		return &ErisError{404, BaseError(ErrCantGetFromIPFS, err), FixGetFromIPFS}
 	}
 
 	_, err = loaders.LoadServiceDefinition(do.Name, false)
