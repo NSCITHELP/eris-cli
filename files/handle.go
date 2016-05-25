@@ -23,13 +23,13 @@ import (
 
 func GetFiles(do *definitions.Do) error {
 	if err := EnsureIPFSrunning(); err != nil {
-		return err
+		return &ErisError{ErrEris, err, "run: [eris services start ipfs] to continue"}
 	}
 
 	// where Object is a directory already added recursively to ipfs
 	dirBool, err := isHashAnObject(do.Hash)
 	if err != nil {
-		return err
+		return &ErisError{ErrEris, err, "check your hash"}
 	}
 
 	if dirBool {
@@ -39,13 +39,13 @@ func GetFiles(do *definitions.Do) error {
 		}).Warn("Getting a directory")
 		buf, err := importDirectory(do)
 		if err != nil {
-			return err
+			return &ErisError{ErrEris, err, ""}
 		}
 		log.Warn("Directory object getted succesfully.")
 		log.Warn(util.TrimString(buf.String()))
 	} else {
 		if err := importFile(do.Hash, do.Path); err != nil {
-			return err
+			return &ErisError{ErrEris, err, ""}
 		}
 	}
 	return nil
@@ -57,27 +57,27 @@ func PutFiles(do *definitions.Do) error {
 	}
 
 	if err := checkGatewayFlag(do); err != nil {
-		return err
+		return &ErisError{ErrEris, err, "use a valid gateway URL"}
 	}
 
 	//check if do.Name is dir or file ...
 	f, err := os.Stat(do.Name)
 	if err != nil {
-		return err
+		return &ErisError{ErrGo, err, fmt.Sprintf("ensure %s is a valid file or directory", do.Name)}
 	}
 
 	if f.IsDir() {
 		log.WithField("dir", do.Name).Warn("Adding contents of a directory")
 		buf, err := exportDirectory(do)
 		if err != nil {
-			return err
+			return &ErisError{ErrEris, err, "try upgrading ipfs?"}
 		}
 		log.Warn("Directory object added succesfully")
 		log.Warn(util.TrimString(buf.String()))
 	} else {
 		hash, err := exportFile(do.Name, do.Gateway)
 		if err != nil {
-			return err
+			return &ErisError{ErrEris, err, "try upgrading ipfs?"}
 		}
 		do.Result = hash
 	}
@@ -173,7 +173,7 @@ func PinFiles(do *definitions.Do) error {
 	}).Debug("Pinning a file")
 	hash, err := pinFile(do.Name)
 	if err != nil {
-		return err
+		return &ErisError{ErrEris, err, ""}
 	}
 	do.Result = hash
 	return nil
@@ -190,7 +190,7 @@ func CatFiles(do *definitions.Do) error {
 	}).Debug("Dumping the contents of a file")
 	hash, err := catFile(do.Name)
 	if err != nil {
-		return err
+		return &ErisError{ErrEris, err, ""}
 	}
 	do.Result = hash
 	return nil
@@ -207,7 +207,7 @@ func ListFiles(do *definitions.Do) error {
 	}).Debug("Listing an object")
 	hash, err := listFile(do.Name)
 	if err != nil {
-		return err
+		return &ErisError{ErrEris, err, ""}
 	}
 	do.Result = hash
 	return nil
@@ -225,21 +225,21 @@ func ManagePinned(do *definitions.Do) error {
 		log.Info("Removing all cached files")
 		hashes, err := rmAllPinned()
 		if err != nil {
-			return err
+			return &ErisError{ErrEris, err, ""}
 		}
 		do.Result = hashes
 	} else if do.Hash != "" {
 		log.WithField("hash", do.Hash).Info("Removing from cache")
 		hashes, err := rmPinnedByHash(do.Hash)
 		if err != nil {
-			return err
+			return &ErisError{ErrEris, err, ""}
 		}
 		do.Result = hashes
 	} else {
 		log.Debug("Listing files pinned locally")
 		hash, err := listPinned()
 		if err != nil {
-			return err
+			return &ErisError{ErrEris, err, ""}
 		}
 		do.Result = hash
 	}
@@ -260,7 +260,7 @@ func importFile(hash, fileName string) error {
 		err = ipfs.GetFromIPFS(hash, fileName, "", bytes.NewBuffer([]byte{}))
 	}
 	if err != nil {
-		return &ErisError{404, BaseError(ErrCantGetFromIPFS, err), FixGetFromIPFS}
+		return BaseError(ErrCantGetFromIPFS, err)
 	}
 	return nil
 }
@@ -280,12 +280,13 @@ func exportFile(fileName, gateway string) (string, error) {
 		hash, err = ipfs.SendToIPFS(fileName, gateway, bytes.NewBuffer([]byte{}))
 	}
 	if err != nil {
-		return "", err
+		return "", err // ErrCantPutToIPFS TODO
 	}
 
 	return hash, nil
 }
 
+// TODO custom errors for all the below?
 func pinFile(fileHash string) (string, error) {
 	var hash string
 	var err error
@@ -385,7 +386,7 @@ func EnsureIPFSrunning() error {
 	doNow := definitions.NowDo()
 	doNow.Name = "ipfs"
 	if err := services.EnsureRunning(doNow); err != nil {
-		return &ErisError{404, BaseError(ErrEnsureRunningIPFS, err), "pls start ipfs"}
+		return &ErisError{ErrEris, BaseError(ErrEnsureRunningIPFS, err), "run: [eris services start ipfs]"}
 	}
 	log.Info("IPFS is running")
 	return nil

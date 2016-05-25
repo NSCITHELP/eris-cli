@@ -35,28 +35,28 @@ func cleanHandler(toClean map[string]bool) error {
 	if toClean["containers"] {
 		log.Debug("Removing all eris containers")
 		if err := RemoveAllErisContainers(); err != nil {
-			return err
+			return &ErisError{404, err, "use (carefully) [docker rm -vf <containerID>]"}
 		}
 	}
 
 	if toClean["scratch"] {
 		log.Debug("Removing contents of DataContainersPath")
 		if err := cleanScratchData(); err != nil {
-			return err
+			return &ErisError{404, err, "remove the file manually"}
 		}
 	}
 
 	if toClean["rmd"] {
 		log.Debug("Removing Eris root directory")
 		if err := os.RemoveAll(common.ErisRoot); err != nil {
-			return err
+			return &ErisError{404, err, "remove the directory manually"}
 		}
 	}
 
 	if toClean["images"] {
 		log.Debug("Removing all Eris Docker images")
 		if err := RemoveErisImages(); err != nil {
-			return err
+			return &ErisError{404, err, "remove the images manually: [docker images] then [docker rmi <imageID>]"}
 		}
 	}
 	return nil
@@ -66,7 +66,7 @@ func cleanHandler(toClean map[string]bool) error {
 func RemoveAllErisContainers() error {
 	contns, err := DockerClient.ListContainers(docker.ListContainersOptions{All: true})
 	if err != nil {
-		return &ErisError{404, BaseError(ErrListingContainers, DockerError(err)), "problem with docker client?"}
+		return BaseError(ErrListingContainers, DockerError(err))
 	}
 
 	for _, container := range contns {
@@ -76,10 +76,9 @@ func RemoveAllErisContainers() error {
 			strings.HasPrefix(strings.TrimLeft(container.Names[0], "/"), "eris_") {
 
 			if err := removeContainer(container.ID); err != nil {
-				return &ErisError{404, BaseError(ErrRemovingContainer, DockerError(err)), "problem with docker client?"}
+				return BaseError(ErrRemovingContainer, DockerError(err))
 			}
 		}
-
 	}
 
 	return nil
@@ -99,7 +98,7 @@ func removeContainer(containerID string) error {
 			log.Debug("Weird EOF error. Not reaping")
 			return nil
 		}
-		return err
+		return DockerError(err)
 	}
 	return nil
 }

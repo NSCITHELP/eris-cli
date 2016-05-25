@@ -18,6 +18,17 @@ import (
 //	- BaseError*()	=> a custom formatted error
 
 // ------------------ base error framework ------------------------
+var (
+	ErrGo = 400
+	ErrDependency = 401
+	ErrDocker = 402
+	ErrDockerMachine = 403
+
+	ErrErisPreRun = 500
+	ErrEris = 501
+)
+
+
 type ErisError struct {
 	Code int
 	ErrMsg error

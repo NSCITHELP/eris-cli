@@ -24,12 +24,11 @@ func RenameData(do *definitions.Do) error {
 		ops := loaders.LoadDataDefinition(do.Name)
 		util.Merge(ops, do.Operations)
 
-		err := perform.DockerRename(ops, do.NewName)
-		if err != nil {
-			return err
+		if err := perform.DockerRename(ops, do.NewName); err != nil {
+			return &ErisError{ErrDocker, err, ""}
 		}
 	} else {
-		return ErrCantFindData
+		return &ErisError{ErrEris, ErrCantFindData, ""}
 	}
 	do.Result = "success"
 	return nil
@@ -44,10 +43,10 @@ func InspectData(do *definitions.Do) error {
 
 		err := perform.DockerInspect(srv.Service, srv.Operations, do.Operations.Args[0])
 		if err != nil {
-			return err
+			return &ErisError{ErrDocker, err, ""}
 		}
 	} else {
-		return ErrCantFindData
+		return &ErisError{ErrEris, ErrCantFindData, ""}
 	}
 	do.Result = "success"
 	return nil
@@ -68,20 +67,16 @@ func RmData(do *definitions.Do) (err error) {
 
 			if err = perform.DockerRemove(srv.Service, srv.Operations, false, do.Volumes, false); err != nil {
 				// TODO error
-				log.Errorf("Error removing %s: %v", do.Name, err)
-				return err
+				return &ErisError{ErrDocker, err, ""}
 			}
-
 		} else {
-			err = ErrCantFindData
-			log.Error(err)
-			return err
+			return &ErisError{ErrDocker, ErrCantFindData, ""}
 		}
 
 		if do.RmHF {
 			log.WithField("=>", do.Name).Warn("Removing host directory")
 			if err = os.RemoveAll(filepath.Join(DataContainersPath, do.Name)); err != nil {
-				return err
+				return &ErisError{ErrGo, err, "use force"}
 			}
 		}
 	}

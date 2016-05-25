@@ -59,7 +59,6 @@ Complete documentation is available at https://docs.erisindustries.com
 			return
 		}
 
-
 		IfExit(util.DockerConnect(do.Verbose, do.MachineName))
 		ipfs.IpfsHost = config.GlobalConfig.Config.IpfsHost
 
@@ -82,6 +81,7 @@ Complete documentation is available at https://docs.erisindustries.com
 		}
 
 		// Compare Docker client API versions.
+		// TODO cleanup errors
 		dockerVersion, err := util.DockerClientVersion()
 		if err != nil {
 			IfExit(&ErisError{404, BaseError(ErrConnectDockerDaemon, util.DockerError(err)), ""})

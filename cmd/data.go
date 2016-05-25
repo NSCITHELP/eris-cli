@@ -141,13 +141,13 @@ var dataRm = &cobra.Command{
 //----------------------------------------------------
 
 func addDataFlags() {
-	dataRm.Flags().BoolVarP(&do.RmHF, "dir", "", false, "remove data folder from host")
 
 	dataList.Flags().BoolVarP(&do.JSON, "json", "", false, "machine readable output")
 	dataList.Flags().StringVarP(&do.Format, "format", "f", "", "alternate format for columnized output")
 	dataList.Flags().BoolVarP(&do.All, "all", "a", false, "dummy flag for symmetry with [services ls -a] and [chains ls -a]")
 
 	buildFlag(dataRm, do, "rm-volumes", "data")
+	dataRm.Flags().BoolVarP(&do.RmHF, "dir", "", false, "remove data folder from host")
 
 	buildFlag(dataExec, do, "interactive", "data")
 
