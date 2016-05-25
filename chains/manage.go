@@ -43,7 +43,7 @@ import (
 //
 func MakeChain(do *definitions.Do) error {
 	if err := checkKeysRunningOrStart(); err != nil {
-		return err
+		return &ErisError{404, err, ""}
 	}
 
 	do.Service.Name = do.Name
@@ -98,25 +98,25 @@ func MakeChain(do *definitions.Do) error {
 	doData.Source = AccountsTypePath
 	doData.Destination = path.Join(ErisContainerRoot, "chains", "account-types")
 	if err := data.ImportData(doData); err != nil {
-		return err
+		return &ErisError{404, err, ""}
 	}
 
 	doData.Source = ChainTypePath
 	doData.Destination = path.Join(ErisContainerRoot, "chains", "chain-types")
 	if err := data.ImportData(doData); err != nil {
-		return err
+		return &ErisError{404, err, ""}
 	}
 
 	chnPath := filepath.Join(ChainsPath, do.Name)
 	doData.Source = chnPath
 	doData.Destination = path.Join(ErisContainerRoot, "chains", do.Name)
 	if err := data.ImportData(doData); err != nil {
-		return err
+		return &ErisError{404, err, ""}
 	}
 
 	buf, err := perform.DockerExecService(do.Service, do.Operations)
 	if err != nil {
-		return err
+		return &ErisError{404, err, ""}
 	}
 
 	io.Copy(config.GlobalConfig.Writer, buf)
@@ -124,7 +124,7 @@ func MakeChain(do *definitions.Do) error {
 	doData.Source = path.Join(ErisContainerRoot, "chains")
 	doData.Destination = ErisRoot
 	if err := data.ExportData(doData); err != nil {
-		return err
+		return &ErisError{404, err, ""}
 	}
 
 	if !do.RmD {
@@ -178,14 +178,14 @@ func ImportChain(do *definitions.Do) error {
 func InspectChain(do *definitions.Do) error {
 	chain, err := loaders.LoadChainDefinition(do.Name, false)
 	if err != nil {
-		return err
+		return &ErisError{404, err, ""}
 	}
 
 	if util.IsChain(chain.Name, false) {
 		log.WithField("=>", chain.Service.Name).Debug("Inspecting chain")
 		err := services.InspectServiceByService(chain.Service, chain.Operations, do.Operations.Args[0])
 		if err != nil {
-			return err
+			return &ErisError{404, err, ""}
 		}
 	}
 
@@ -202,12 +202,12 @@ func InspectChain(do *definitions.Do) error {
 func LogsChain(do *definitions.Do) error {
 	chain, err := loaders.LoadChainDefinition(do.Name, false)
 	if err != nil {
-		return err
+		return &ErisError{404, err, ""}
 	}
 
 	err = perform.DockerLogs(chain.Service, chain.Operations, do.Follow, do.Tail)
 	if err != nil {
-		return err
+		return &ErisError{404, err, ""}
 	}
 
 	return nil
@@ -221,7 +221,7 @@ func LogsChain(do *definitions.Do) error {
 func ExportChain(do *definitions.Do) error {
 	chain, err := loaders.LoadChainDefinition(do.Name, false)
 	if err != nil {
-		return err
+		return &ErisError{404, err, ""}
 	}
 	if util.IsChain(chain.Name, false) {
 		doNow := definitions.NowDo()
@@ -230,12 +230,12 @@ func ExportChain(do *definitions.Do) error {
 
 		hash, err := exportFile(do.Name)
 		if err != nil {
-			return err
+			return &ErisError{404, err, ""}
 		}
 		log.Warn(hash)
 
 	} else {
-		return ErrCantFindChain
+		return &ErisError{404, ErrCantFindChain, ""}
 	}
 	return nil
 }
@@ -301,7 +301,7 @@ func CatChain(do *definitions.Do) error {
 	case "toml":
 		cat, err := ioutil.ReadFile(filepath.Join(ChainsPath, do.Name+".toml"))
 		if err != nil {
-			return err
+			return &ErisError{404, err, ""}
 		}
 		config.GlobalConfig.Writer.Write(cat)
 		return nil
@@ -317,7 +317,7 @@ func CatChain(do *definitions.Do) error {
 		io.Copy(config.GlobalConfig.Writer, buf)
 	}
 
-	return err
+	return &ErisError{404, err, ""}
 }
 
 // PortsChain displays the port mapping for a particular chain.
@@ -328,12 +328,14 @@ func CatChain(do *definitions.Do) error {
 func PortsChain(do *definitions.Do) error {
 	chain, err := loaders.LoadChainDefinition(do.Name, false)
 	if err != nil {
-		return err
+		return &ErisError{404, err, ""}
 	}
 
 	if util.IsChain(chain.Name, false) {
 		log.WithField("=>", chain.Name).Debug("Getting chain port mapping")
-		return util.PrintPortMappings(chain.Operations.SrvContainerName, do.Operations.Args)
+		if err := util.PrintPortMappings(chain.Operations.SrvContainerName, do.Operations.Args); err != nil {
+			return &ErisError{404, err, ""}
+		}
 	}
 
 	return nil
@@ -356,7 +358,7 @@ func EditChain(do *definitions.Do) error {
 // XXX: What's going on here? => [csk]: magic
 func RenameChain(do *definitions.Do) error {
 	if do.Name == do.NewName {
-		return ErrRenaming
+		return &ErisError{404, ErrRenaming, ""}
 	}
 
 	newNameBase := strings.Replace(do.NewName, filepath.Ext(do.NewName), "", 1)
@@ -371,20 +373,20 @@ func RenameChain(do *definitions.Do) error {
 		log.WithField("=>", do.Name).Debug("Loading chain definition file")
 		chainDef, err := loaders.LoadChainDefinition(do.Name, false)
 		if err != nil {
-			return err
+			return &ErisError{404, err, ""}
 		}
 
 		if !transformOnly {
 			log.Debug("Renaming chain container")
 			err = perform.DockerRename(chainDef.Operations, do.NewName)
 			if err != nil {
-				return err
+				return &ErisError{404, err, ""}
 			}
 		}
 
 		oldFile := util.GetFileByNameAndType("chains", do.Name)
 		if err != nil {
-			return err
+			return &ErisError{404, err, ""}
 		}
 
 		if filepath.Base(oldFile) == do.NewName {
@@ -418,13 +420,15 @@ func RenameChain(do *definitions.Do) error {
 			}).Info("Renaming chain data container")
 			err = data.RenameData(do)
 			if err != nil {
-				return err
+				return &ErisError{404, err, ""}
 			}
 		}
 
-		os.Remove(oldFile)
+		if err := os.Remove(oldFile); err != nil {
+			return &ErisError{404, err, ""}
+		}
 	} else {
-		return ErrCantFindChain
+		return &ErisError{404, ErrCantFindChain, ""}
 	}
 	return nil
 }
@@ -432,7 +436,7 @@ func RenameChain(do *definitions.Do) error {
 func UpdateChain(do *definitions.Do) error {
 	chain, err := loaders.LoadChainDefinition(do.Name, false)
 	if err != nil {
-		return err
+		return &ErisError{404, err, ""}
 	}
 
 	// set the right env vars and command
@@ -445,7 +449,7 @@ func UpdateChain(do *definitions.Do) error {
 
 	err = perform.DockerRebuild(chain.Service, chain.Operations, do.Pull, do.Timeout)
 	if err != nil {
-		return err
+		return &ErisError{404, err, ""}
 	}
 	return nil
 }
@@ -453,12 +457,12 @@ func UpdateChain(do *definitions.Do) error {
 func RemoveChain(do *definitions.Do) error {
 	chain, err := loaders.LoadChainDefinition(do.Name, false)
 	if err != nil {
-		return err
+		return &ErisError{404, err, ""}
 	}
 
 	if util.IsChain(chain.Name, false) {
 		if err = perform.DockerRemove(chain.Service, chain.Operations, do.RmD, do.Volumes, do.Force); err != nil {
-			return err
+			return &ErisError{404, err, ""}
 		}
 	} else {
 		log.Info("Chain container does not exist")
@@ -467,11 +471,11 @@ func RemoveChain(do *definitions.Do) error {
 	if do.File {
 		oldFile := util.GetFileByNameAndType("chains", do.Name)
 		if err != nil {
-			return err
+			return &ErisError{404, err, ""}
 		}
 		log.WithField("file", oldFile).Warn("Removing file")
 		if err := os.Remove(oldFile); err != nil {
-			return err
+			return &ErisError{404, err, ""}
 		}
 	}
 
@@ -480,13 +484,14 @@ func RemoveChain(do *definitions.Do) error {
 
 		log.WithField("directory", dirPath).Warn("Removing directory")
 		if err := os.RemoveAll(dirPath); err != nil {
-			return err
+			return &ErisError{404, err, ""}
 		}
 	}
 
 	return nil
 }
 
+// TODO this func is duplicate everywhere => use PutFiles
 func exportFile(chainName string) (string, error) {
 	fileName := util.GetFileByNameAndType("chains", chainName)
 

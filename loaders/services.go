@@ -1,7 +1,6 @@
 package loaders
 
 import (
-	"fmt"
 	"path/filepath"
 	"strings"
 
