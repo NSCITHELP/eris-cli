@@ -1,7 +1,6 @@
 package chains
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -19,10 +18,10 @@ import (
 	"github.com/eris-ltd/eris-cli/services"
 	"github.com/eris-ltd/eris-cli/util"
 	"github.com/eris-ltd/eris-cli/version"
+	"github.com/eris-ltd/eris-cli/files"
 
 	log "github.com/Sirupsen/logrus"
 	. "github.com/eris-ltd/common/go/common"
-	"github.com/eris-ltd/common/go/ipfs"
 )
 
 // MakeChain runs the `eris-cm make` command in a docker container.
@@ -138,7 +137,8 @@ func MakeChain(do *definitions.Do) error {
 // that file into ChainPath. It returns an error.
 //
 //  do.Name          - name of the chain to be imported (required)
-//  do.Path          - path to export to; currently only supports ipfs (example: ipfs:QmVdjShTMLAD6YTEgQ1wen1ym4p19ZWepCYTf1MNC1f1Ft) (required)
+//  do.Path          - path to export to; currently only supports ipfs (example: QmVdjShTMLAD6YTEgQ1wen1ym4p19ZWepCYTf1MNC1f1Ft) (required) 
+//  [zr] do.Path should be do.Hash
 //
 func ImportChain(do *definitions.Do) error {
 	fileName := filepath.Join(ChainsPath, do.Name)
@@ -146,27 +146,15 @@ func ImportChain(do *definitions.Do) error {
 		fileName = fileName + ".toml"
 	}
 
-	s := strings.Split(do.Path, ":")
-	if s[0] == "ipfs" {
-		var err error
-		if log.GetLevel() > 0 {
-			err = ipfs.GetFromIPFS(s[1], fileName, "", os.Stdout)
-		} else {
-			err = ipfs.GetFromIPFS(s[1], fileName, "", bytes.NewBuffer([]byte{}))
-		}
-
-		if err != nil {
-			return &ErisError{404, BaseError(ErrCantGetFromIPFS, err), FixGetFromIPFS}
-		}
-		return nil
+	doGet := definitions.NowDo()
+	doGet.Hash = do.Hash
+	doGet.Path = fileName
+	if err := files.GetFiles(doGet); err != nil {
+		return err // returns an ErisError
 	}
+	log.WithField("path", doGet.Path).Warn("Your chain has been succesfully added to")
 
-	if strings.Contains(s[0], "github") {
-		log.Warn("https://twitter.com/ryaneshea/status/595957712040628224")
-		return nil
-	}
-
-	return ErrNoFile
+	return nil
 }
 
 // InspectChain is eris' version of docker inspect. It returns
@@ -228,11 +216,13 @@ func ExportChain(do *definitions.Do) error {
 		doNow.Name = "ipfs"
 		services.EnsureRunning(doNow)
 
-		hash, err := exportFile(do.Name)
-		if err != nil {
-			return &ErisError{404, err, ""}
+		doPut := definitions.NowDo()
+		doPut.Name = do.Name
+		if err := files.PutFiles(doPut); err != nil {
+			return err // returns an ErisError
 		}
-		log.Warn(hash)
+
+		log.Warn(doPut.Result)
 
 	} else {
 		return &ErisError{404, ErrCantFindChain, ""}
@@ -489,25 +479,6 @@ func RemoveChain(do *definitions.Do) error {
 	}
 
 	return nil
-}
-
-// TODO this func is duplicate everywhere => use PutFiles
-func exportFile(chainName string) (string, error) {
-	fileName := util.GetFileByNameAndType("chains", chainName)
-
-	var hash string
-	var err error
-	if log.GetLevel() > 0 {
-		hash, err = ipfs.SendToIPFS(fileName, "", os.Stdout)
-	} else {
-		hash, err = ipfs.SendToIPFS(fileName, "", bytes.NewBuffer([]byte{}))
-	}
-
-	if err != nil {
-		return "", err
-	}
-
-	return hash, nil
 }
 
 func checkKeysRunningOrStart() error {

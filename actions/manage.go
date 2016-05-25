@@ -8,9 +8,10 @@ import (
 
 	"github.com/eris-ltd/eris-cli/definitions"
 	. "github.com/eris-ltd/eris-cli/errors"
-	"github.com/eris-ltd/eris-cli/loaders"
-	"github.com/eris-ltd/eris-cli/perform"
+	//"github.com/eris-ltd/eris-cli/loaders"
+	//"github.com/eris-ltd/eris-cli/perform"
 	"github.com/eris-ltd/eris-cli/util"
+	"github.com/eris-ltd/eris-cli/files"
 
 	log "github.com/Sirupsen/logrus"
 	. "github.com/eris-ltd/common/go/common"
@@ -40,39 +41,14 @@ func ImportAction(do *definitions.Do) error {
 		fileName = fileName + ".toml"
 	}
 
-	s := strings.Split(do.Path, ":")
-	if s[0] == "ipfs" {
-
-		var err error
-		ipfsService, err := loaders.LoadServiceDefinition("ipfs", false)
-		if err != nil {
-			return &ErisError{404, err, ""}
-		}
-
-		ipfsService.Operations.ContainerType = definitions.TypeService
-		err = perform.DockerRunService(ipfsService.Service, ipfsService.Operations)
-		if err != nil {
-			return err
-		}
-
-		if log.GetLevel() > 0 {
-			err = ipfs.GetFromIPFS(s[1], fileName, "", os.Stdout)
-		} else {
-			err = ipfs.GetFromIPFS(s[1], fileName, "", bytes.NewBuffer([]byte{}))
-		}
-
-		if err != nil {
-			return &ErisError{404, BaseError(ErrCantGetFromIPFS, err), FixGetFromIPFS}
-		}
-		return nil
+	doGet := definitions.NowDo()
+	doGet.Hash = do.Hash
+	doGet.Path = fileName
+	if err := files.GetFiles(doGet); err != nil {
+		return err // returns an ErisError
 	}
+	log.WithField("path", doGet.Path).Warn("Your action has been succesfully added to")
 
-	if strings.Contains(s[0], "github") {
-		log.Warn("https://twitter.com/ryaneshea/status/595957712040628224")
-		return nil
-	}
-
-	log.Warn("Failed to get that file. Sorry")
 	return nil
 }
 
@@ -81,22 +57,14 @@ func ExportAction(do *definitions.Do) error {
 	if err != nil {
 		return &ErisError{404, err, ""}
 	}
-
-	ipfsService, err := loaders.LoadServiceDefinition("ipfs", false)
-	if err != nil {
-		return &ErisError{404, err, ""}
+	// ensure IPFS running?
+	doPut := definitions.NowDo()
+	doPut.Name = do.Name
+	if err := files.PutFiles(doPut); err != nil {
+		return err // returns an ErisError
 	}
-	err = perform.DockerRunService(ipfsService.Service, ipfsService.Operations)
-	if err != nil {
-		return &ErisError{404, err, ""}
-	}
-
-	hash, err := exportFile(do.Name)
-	if err != nil {
-		return &ErisError{404, err, ""}
-	}
-	do.Result = hash
-	log.Warn(hash)
+	do.Result = doPut.Result
+	log.Warn(do.Result)
 	return nil
 }
 

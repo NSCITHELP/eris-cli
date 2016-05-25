@@ -505,7 +505,7 @@ func NewChain(cmd *cobra.Command, args []string) {
 func ImportChain(cmd *cobra.Command, args []string) {
 	IfExit(ArgCheck(2, "eq", cmd, args))
 	do.Name = args[0]
-	do.Path = args[1]
+	do.Hash = args[1]
 	IfExit(chns.ImportChain(do))
 }
 

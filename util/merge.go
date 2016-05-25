@@ -8,7 +8,7 @@ import (
 
 // Merge merges maps and slices of base and over and overwrites other base fields.
 // Base and over are pointers to structs. The result is stored in base.
-// Merge returns ErrorMergeParameters if either base or over are not
+// Merge returns ErrMergeParameters if either base or over are not
 // pointers to structs.
 func Merge(base, over interface{}) error {
 	if base == nil || over == nil {
