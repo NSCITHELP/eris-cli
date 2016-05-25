@@ -15,6 +15,7 @@ import (
 
 // if given empty string for fileName will use Service
 // Definition Name
+// TODO return ErisError? maybe not
 func WriteServiceDefinitionFile(serviceDef *def.ServiceDefinition, fileName string) error {
 
 	if filepath.Ext(fileName) == "" {

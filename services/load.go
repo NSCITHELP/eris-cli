@@ -13,6 +13,7 @@ import (
 )
 
 //checks that a service is running. if not, tells user to start it
+// TODO return ErisError
 func EnsureRunning(do *definitions.Do) error {
 	if os.Getenv("ERIS_SKIP_ENSURE") != "" {
 		return nil

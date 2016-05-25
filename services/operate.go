@@ -22,7 +22,7 @@ func StartService(do *definitions.Do) (err error) {
 	for _, srv := range do.Operations.Args {
 		s, e := BuildServicesGroup(srv)
 		if e != nil {
-			return e
+			return &ErisError{ErrEris, e, ""}
 		}
 		services = append(services, s...)
 	}
@@ -46,7 +46,7 @@ func StartService(do *definitions.Do) (err error) {
 
 	services, err = BuildChainGroup(do.ChainName, services)
 	if err != nil {
-		return err
+		return &ErisError{ErrEris, err, ""}
 	}
 	log.Debug("Checking services after build chain")
 	for _, s := range services {
@@ -67,7 +67,7 @@ func StartService(do *definitions.Do) (err error) {
 	topService.Service.Links = append(topService.Service.Links, do.Links...)
 	services[len(services)-1] = topService
 
-	return StartGroup(services)
+	return StartGroup(services) // throws an ErisError
 }
 
 func KillService(do *definitions.Do) (err error) {
@@ -77,7 +77,7 @@ func KillService(do *definitions.Do) (err error) {
 	for _, servName := range do.Operations.Args {
 		s, e := BuildServicesGroup(servName)
 		if e != nil {
-			return e
+			return &ErisError{ErrEris, e, ""}
 		}
 		services = append(services, s...)
 	}
@@ -91,7 +91,7 @@ func KillService(do *definitions.Do) (err error) {
 		if util.IsService(service.Service.Name, true) {
 			log.WithField("=>", service.Service.Name).Debug("Stopping service")
 			if err := perform.DockerStop(service.Service, service.Operations, do.Timeout); err != nil {
-				return err
+				return &ErisError{ErrDocker, err, "drop to porcelain/update docker"}
 			}
 
 		} else {
@@ -100,7 +100,7 @@ func KillService(do *definitions.Do) (err error) {
 
 		if do.Rm {
 			if err := perform.DockerRemove(service.Service, service.Operations, do.RmD, do.Volumes, do.Force); err != nil {
-				return err
+				return &ErisError{ErrDocker, err, "drop to porcelain/update docker"}
 			}
 		}
 	}
@@ -135,8 +135,11 @@ func ExecService(do *definitions.Do) (buf *bytes.Buffer, err error) {
 	if len(do.Links) > 0 {
 		service.Service.Links = do.Links
 	}
-
-	return perform.DockerExecService(service.Service, service.Operations)
+	buf, err = perform.DockerExecService(service.Service, service.Operations)
+	if err != nil {
+		return nil, &ErisError{ErrDocker, err, "something"}
+	}
+	return buf, nil
 }
 
 // ExecHandler implemements ExecService for use within
@@ -181,7 +184,7 @@ func StartGroup(group []*definitions.ServiceDefinition) error {
 	for _, srv := range group {
 		log.WithField("=>", srv.Name).Debug("Performing container start")
 		if err := perform.DockerRunService(srv.Service, srv.Operations); err != nil {
-			return &ErisError{404, BaseError(ErrStartingService, err), "some fix"}
+			return &ErisError{ErrDocker, BaseError(ErrStartingService, err), "some fix"}
 		}
 	}
 	return nil
@@ -221,7 +224,7 @@ func ConnectChainToService(chainFlag, chainNameAndOpts string, srv *definitions.
 		var err error
 		chainName, err = util.GetHead()
 		if chainName == "" || err != nil {
-			return nil, fmt.Errorf("%s %v", ErrNoChainSpecified, err)
+			return nil, BaseError(ErrNoChainSpecified, err)
 		}
 	}
 	s, err := loaders.ChainsAsAService(chainName, false)
