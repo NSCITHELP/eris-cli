@@ -89,7 +89,9 @@ func Containers(t, format string, running bool) error {
 
 	// Dump a JSON document then terminate.
 	if format == "json" {
-		return jsonContainers(t, running)
+		if err := jsonContainers(t, running); err != nil {
+			return &ErisError{ErrEris, err, "bug in eris code or badly formatted container"}
+		}
 	}
 
 	// Collect container information.
@@ -158,8 +160,7 @@ func Containers(t, format string, running bool) error {
 	}
 
 	if _, ok := renderParams[t]; !ok {
-		// TODO
-		return fmt.Errorf("Don't know the type %q to list containers for", t)
+		return &ErisError{ErrEris, BaseErrorES(ErrTypeListContainers, fmt.Sprintf("%q", t)), "provide a valid type"}
 	}
 
 	for _, p := range renderParams[t][key] {
@@ -168,7 +169,7 @@ func Containers(t, format string, running bool) error {
 			continue
 		}
 		if err := render(buf, p.Type, p.DontShowData, p.Header, p.Template); err != nil {
-			return err
+			return &ErisError{ErrEris, err, "bug in eris, probably"}
 		}
 	}
 
@@ -209,17 +210,17 @@ func render(buf *bytes.Buffer, t string, truncate bool, header, format string) e
 	if header != "" {
 		tmplHeader, err := template.New("header").Funcs(helpers).Parse(r.Replace(header))
 		if err != nil {
-			return &ErisError{404, BaseErrorESE(ErrBadTemplate, "header", err), ""}
+			return BaseErrorESE(ErrBadTemplate, "header", err)
 		}
 		if err := tmplHeader.Execute(buf, t); err != nil {
-			return &ErisError{404, BaseErrorESE(ErrBadTemplate, "header", err), ""}
+			return BaseErrorESE(ErrBadTemplate, "header", err)
 		}
 		buf.WriteString("\n")
 	}
 
 	tmplTable, err := template.New("containers").Funcs(helpers).Parse(r.Replace(format))
 	if err != nil {
-		return &ErisError{404, BaseErrorESE(ErrBadTemplate, "listing", err), ""}
+		return BaseErrorESE(ErrBadTemplate, "listing", err)
 	}
 
 	for _, container := range erisContainers {
@@ -236,7 +237,7 @@ func render(buf *bytes.Buffer, t string, truncate bool, header, format string) e
 		}
 
 		if err := tmplTable.Execute(buf, container); err != nil {
-			return &ErisError{404, BaseErrorESE(ErrBadTemplate, "listing", err), ""}
+			return BaseErrorESE(ErrBadTemplate, "listing", err)
 		}
 
 		buf.WriteString("\n")

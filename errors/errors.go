@@ -133,6 +133,7 @@ var (
 	ErrExecChain = "cannot exec chain %s: %v"
 
 	ErrListingContainers = "cannot list containers: %v"
+	ErrTypeListContainers = "cannot determine the type %s to list containers for"
 	ErrRemovingContainer = "cannot remove container: %v"
 
 	ErrBadReport = "cannot print a nice report: %v"

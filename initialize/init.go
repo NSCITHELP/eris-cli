@@ -15,31 +15,31 @@ import (
 func Initialize(do *definitions.Do) error {
 	newDir, err := checkThenInitErisRoot(do.Quiet)
 	if err != nil {
-		return err
+		return &ErisError{ErrEris, err, ""}
 	}
 
 	if !newDir { //new ErisRoot won't have either...can skip
 		if err := checkIfCanOverwrite(do.Yes); err != nil {
-			return nil
+			return nil // [zr] why nil ?
 		}
 
 		log.Info("Checking if migration is required")
 		if err := checkIfMigrationRequired(do.Yes); err != nil {
-			return nil
+			return nil // [zr] why nil ?
 		}
 
 	}
 
 	if do.Pull { //true by default; if imgs already exist, will check for latest anyways
 		if err := GetTheImages(do.Yes); err != nil {
-			return err
+			return &ErisError{ErrDocker, err, "increase bandwidth or ensure you can access quay.io"}
 		}
 	}
 
 	//drops: services, actions, & chain defaults from toadserver
 	log.Warn("Initializing default service, action, and chain files")
 	if err := InitDefaults(do, newDir); err != nil {
-		return &ErisError{404, BaseError(ErrInitDefaults, err), "try again"}
+		return &ErisError{ErrEris, BaseError(ErrInitDefaults, err), "might need to hack around a proxy or get an internet connection"}
 	}
 
 	if !do.Quiet {
@@ -98,15 +98,15 @@ func InitDefaults(do *definitions.Do, newDir bool) error {
 	chnPath = common.ChainsPath
 
 	if err := dropServiceDefaults(srvPath, do.Source); err != nil {
-		return &ErisError{404, BaseError(ErrDropDefaults, err), "try again"}
+		return err
 	}
 
 	if err := dropActionDefaults(actPath, do.Source); err != nil {
-		return &ErisError{404, BaseError(ErrDropDefaults, err), "try again"}
+		return err
 	}
 
 	if err := dropChainDefaults(chnPath, do.Source); err != nil {
-		return &ErisError{404, BaseError(ErrDropDefaults, err), "try again"}
+		return err
 	}
 
 	log.WithField("root", common.ErisRoot).Warn("Initialized Eris root directory")
@@ -119,14 +119,14 @@ func checkThenInitErisRoot(force bool) (bool, error) {
 	if force { //for testing only
 		log.Info("Force initializing Eris root directory")
 		if err := common.InitErisDir(); err != nil {
-			return true, &ErisError{404, BaseError(ErrInitErisRoot, err), "try again"}
+			return true, BaseError(ErrInitErisRoot, err)
 		}
 		return true, nil
 	}
 	if !util.DoesDirExist(common.ErisRoot) {
 		log.Warn("Eris root directory doesn't exist. The marmots will initialize it for you")
 		if err := common.InitErisDir(); err != nil {
-			return true, &ErisError{404, BaseError(ErrInitErisRoot, err), "try again"}
+			return true, BaseError(ErrInitErisRoot, err)
 		}
 		newDir = true
 	} else { // ErisRoot exists, prompt for overwrite
@@ -137,12 +137,11 @@ func checkThenInitErisRoot(force bool) (bool, error) {
 
 func checkIfMigrationRequired(doYes bool) error {
 	if err := util.MigrateDeprecatedDirs(common.DirsToMigrate, !doYes); err != nil {
-		return &ErisError{404, BaseError(ErrMigratingDirs, err), "try again"}
+		return BaseError(ErrMigratingDirs, err)
 	}
 	return nil
 }
 
-//func askToPull removed since it's basically a duplicate of this
 func checkIfCanOverwrite(doYes bool) error {
 	if doYes {
 		return nil

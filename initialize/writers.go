@@ -37,7 +37,7 @@ func dropActionDefaults(dir, from string) error {
 	}
 	donot := "do_not_use.toml"
 	if err := writeDefaultFile(common.ActionsPath, donot, defAct); err != nil {
-		return &ErisError{404, BaseErrorESE(ErrWritingFile, donot, err), ""}
+		return BaseErrorESE(ErrWritingFile, donot, err)
 	}
 	return nil
 }
@@ -57,13 +57,13 @@ func dropChainDefaults(dir, from string) error {
 	priv := "priv_validator.json"
 
 	if err := writeDefaultFile(chnDir, genJSON, DefChainGen); err != nil {
-		return &ErisError{404, BaseErrorESE(ErrWritingFile, genJSON, err), ""}
+		return BaseErrorESE(ErrWritingFile, genJSON, err)
 	}
 	if err := writeDefaultFile(chnDir, genCSV, DefChainCSV); err != nil {
-		return &ErisError{404, BaseErrorESE(ErrWritingFile, genCSV, err), ""}
+		return BaseErrorESE(ErrWritingFile, genCSV, err)
 	}
 	if err := writeDefaultFile(chnDir, priv, DefChainKeys); err != nil {
-		return &ErisError{404, BaseErrorESE(ErrWritingFile, priv, err), ""}
+		return BaseErrorESE(ErrWritingFile, priv, err)
 	}
 
 	//insert version into default chain service definition
@@ -114,6 +114,7 @@ func pullDefaultImages() error {
 	auth := docker.AuthConfiguration{}
 
 	for i, image := range images {
+		// TODO be less assumptive WRT tags
 		var tag string = "latest"
 
 		nameSplit := strings.Split(image, ":")
