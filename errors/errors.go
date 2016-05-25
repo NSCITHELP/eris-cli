@@ -78,6 +78,7 @@ var (
 	ErrCantFindAction        = errors.New("cannot find that action.") // "retry with a known action: [eris actions ls --known]"
 	ErrContainerNameNotFound = errors.New("cannot find that container name.") //
 	ErrNoChainName		 = errors.New("cannot start a chain without a name") // TODO generalize this error message
+	ErrStoppingContainer = "cannot stop container: %v"
 
 	ErrInvalidPkgJSON	 = "cannot figure that package.json out." // "check that your package.json is properly formatted"
 	ErrNoChainSpecified	 = "cannot start service which has a `$chain` variable without a chain specified." //fix "rerun the command either after [eris chains checkout CHAINNAME] *or* with a --chain flag."

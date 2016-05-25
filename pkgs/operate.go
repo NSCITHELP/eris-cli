@@ -30,7 +30,7 @@ func RunPackage(do *definitions.Do) error {
 	var err error
 	pwd, err = os.Getwd()
 	if err != nil {
-		return err
+		return &ErisError{ErrGo, err, "ensure you are in a directory"} // TODO deduplicate fix message (see, e.g., data.Import()
 	}
 
 	log.WithFields(log.Fields{
@@ -40,25 +40,25 @@ func RunPackage(do *definitions.Do) error {
 	pkg, err := loaders.LoadPackage(do.Path, do.ChainName)
 	if err != nil {
 		do.Result = "could not load package"
-		return err
+		return &ErisError{ErrEris, err, "ensure your package is on a valid path"}
 	}
 
 	if err := BootServicesAndChain(do, pkg); err != nil {
 		do.Result = "could not boot chain or services"
 		CleanUp(do, pkg)
-		return err
+		return &ErisError{ErrEris, err, "ensure your services and chains are properly setup"}
 	}
 
 	if err := DefinePkgActionService(do, pkg); err != nil {
 		do.Result = "could not define pkg action service"
 		CleanUp(do, pkg)
-		return err
+		return &ErisError{ErrEris, err, ""}
 	}
 
 	if err := PerformAppActionService(do, pkg); err != nil {
 		do.Result = "could not perform pkg action service"
 		CleanUp(do, pkg)
-		return err
+		return &ErisError{ErrEris, err, ""}
 	}
 
 	do.Result = "success"
@@ -443,7 +443,7 @@ func getDataContainerSorted(do *definitions.Do, inbound bool) error {
 			}
 		}
 	} else {
-		return &ErisError{404, BaseErrorES(ErrPathDoesNotExist, do.Path), ""}
+		return BaseErrorES(ErrPathDoesNotExist, do.Path)
 	}
 
 	// import contracts path (if exists)

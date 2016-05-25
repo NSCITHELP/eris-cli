@@ -43,12 +43,9 @@ func DockerCreateData(ops *def.Operation) error {
 		return ErrContainerExists
 	}
 
-	optsData, err := configureDataContainer(def.BlankService(), ops, nil)
-	if err != nil {
-		return err
-	}
+	optsData := configureDataContainer(def.BlankService(), ops, nil)
 
-	_, err = createContainer(optsData)
+	_, err := createContainer(optsData)
 	if err != nil {
 		return err
 	}
@@ -96,12 +93,12 @@ func DockerRunData(ops *def.Operation, service *def.Service) (result []byte, err
 	// Start the container.
 	log.WithField("=>", opts.Name).Info("Starting data container")
 	if err = startContainer(opts); err != nil {
-		return nil, err
+		return nil, err // TODO custom error?
 	}
 
 	log.WithField("=>", opts.Name).Info("Waiting for data container to exit")
 	if err := waitContainer(opts.Name); err != nil {
-		return nil, err
+		return nil, err // TODO custom error?
 	}
 
 	log.WithField("=>", opts.Name).Info("Getting logs from container")
@@ -205,10 +202,7 @@ func DockerRunService(srv *def.Service, ops *def.Operation) error {
 	// Setup data container.
 	log.WithField("autodata", srv.AutoData).Info("Manage data containers?")
 	if srv.AutoData {
-		optsData, err := configureDataContainer(srv, ops, &optsServ)
-		if err != nil {
-			return err
-		}
+		optsData := configureDataContainer(srv, ops, &optsServ)
 
 		if exists := util.FindContainer(ops.DataContainerName, false); exists {
 			log.Info("Data container already exists. Not creating")
@@ -275,10 +269,7 @@ func DockerExecService(srv *def.Service, ops *def.Operation) (buf *bytes.Buffer,
 	log.WithField("autodata", srv.AutoData).Info("Manage data containers?")
 
 	if srv.AutoData {
-		optsData, err := configureDataContainer(srv, ops, &optsServ)
-		if err != nil {
-			return nil, err
-		}
+		optsData := configureDataContainer(srv, ops, &optsServ)
 
 		if exists := util.FindContainer(ops.DataContainerName, false); exists {
 			log.Info("Data container already exists, am not creating")
@@ -639,7 +630,7 @@ func DockerRemove(srv *def.Service, ops *def.Operation, withData, volumes, force
 
 // DockerRemoveImage removes the image specified by name
 // Image will be force removed if force = true
-// Function is ~ to `docker rmi imageName`
+// Function is ~ to [docker rmi <imageName>]
 func DockerRemoveImage(name string, force bool) error {
 	removeOpts := docker.RemoveImageOptions{
 		Force: force,
@@ -649,7 +640,7 @@ func DockerRemoveImage(name string, force bool) error {
 
 // DockerBuild will build an image with imageName
 // and a Dockerfile passed in as strings
-// Function is ~ to `docker build -t imageName .`
+// Function is ~ to [docker build -t <imageName> .]
 // where a Dockerfile is in the `pwd`
 func DockerBuild(imageName, dockerfile string) error {
 	// below has been adapted from:
@@ -663,9 +654,6 @@ func DockerBuild(imageName, dockerfile string) error {
 	tr.WriteHeader(&tar.Header{Name: "Dockerfile", Size: sizeDockerfile, ModTime: t, AccessTime: t, ChangeTime: t})
 	tr.Write([]byte(dockerfile))
 	tr.Close()
-
-	//log.Debug(dockerfile)
-	//log.Debug(imageName)
 
 	//picked only what's necessary for now: this may change with #611
 	r, w := io.Pipe()
@@ -818,7 +806,7 @@ func startInteractiveContainer(opts docker.CreateContainerOptions, terminal bool
 		<-c
 		log.WithField("=>", opts.Name).Info("Caught signal. Stopping container")
 		if err := stopContainer(opts.Name, 5); err != nil {
-			log.Errorf("Error stopping container: %v", err)
+			log.Errorf(fmt.Sprintf(ErrStoppingContainer, err))
 		}
 	}()
 
@@ -893,7 +881,7 @@ func waitContainer(id string) error {
 	if exitCode != 0 {
 		err1 := BaseErrorEI(ErrContainerExit, id, exitCode)
 		if err != nil {
-			err = fmt.Errorf("%v\nerror: %v\n", err1, err)
+			err = fmt.Errorf("error: %v\n%v", err1, err)
 		} else {
 			err = err1
 		}
@@ -1062,7 +1050,6 @@ func configureServiceContainer(srv *def.Service, ops *def.Operation) docker.Crea
 		opts.Config.WorkingDir = srv.WorkDir
 	}
 
-	//[zr] used to be ops.Restart
 	if srv.Restart == "always" {
 		opts.HostConfig.RestartPolicy = docker.AlwaysRestart()
 	} else if strings.Contains(srv.Restart, "max") {
@@ -1148,8 +1135,8 @@ func configureVolumesFromContainer(ops *def.Operation, service *def.Service) doc
 	return opts
 }
 
-func configureDataContainer(srv *def.Service, ops *def.Operation, mainContOpts *docker.CreateContainerOptions) (docker.CreateContainerOptions, error) {
-	// by default data containers will rely on the image used by
+func configureDataContainer(srv *def.Service, ops *def.Operation, mainContOpts *docker.CreateContainerOptions) docker.CreateContainerOptions {
+	//   by default data containers will rely on the image used by
 	//   the base service. sometimes, tho, especially for testing
 	//   that base image will not be present. in such cases use
 	//   the base eris data container.
@@ -1197,7 +1184,7 @@ func configureDataContainer(srv *def.Service, ops *def.Operation, mainContOpts *
 		HostConfig: &docker.HostConfig{},
 	}
 
-	return opts, nil
+	return opts
 }
 
 func checkImageExists(imageName string) (bool, error) {
